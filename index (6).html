@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Natural Gas Leak Recognition and Response</title>
+<meta name="author" content="Naya Roquemore">
+<meta name="description" content="A scenario-based e-learning module for new gas utility field crews. Portfolio sample by Naya Roquemore.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#1F3864; --navy-dk:#15284a; --orange:#E8741E; --orange-dk:#c65c0f;
+  --red:#B42318; --red-bg:#FDECEA; --green:#1B7F4B; --green-bg:#E6F4EC;
+  --panel:#F2F4F7; --line:#D0D5DD; --ink:#1d2433; --muted:#4b5565; --page:#e9edf3; --card:#ffffff;
+  --font:"Open Sans", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:var(--font);font-size:18px;line-height:1.5;color:var(--ink);background:var(--page);
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+button{font:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--orange);outline-offset:3px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+.player{max-width:1000px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;background:var(--card);box-shadow:0 0 0 1px var(--line)}
+.bar{display:flex;align-items:center;gap:14px;background:var(--navy);color:#fff;padding:10px 18px;flex-wrap:wrap}
+.bar h1{font-size:17px;font-weight:700;margin:0;flex:1;min-width:200px;letter-spacing:.1px}
+.tbtn{background:transparent;border:1.5px solid rgba(255,255,255,.55);color:#fff;border-radius:6px;padding:5px 11px;font-size:14px;font-weight:600}
+.tbtn[aria-pressed="true"]{background:#fff;color:var(--navy);border-color:#fff}
+.progress{height:6px;background:#dfe5ee}
+.progress i{display:block;height:100%;width:0;background:var(--orange);transition:width .35s ease}
+
+.meter{display:none;align-items:center;gap:8px;font-size:14px;font-weight:600}
+.meter.on{display:flex}
+.meter .track{width:110px;height:12px;border-radius:6px;background:rgba(255,255,255,.25);overflow:hidden}
+.meter .fill{height:100%;background:#4cc38a;transition:width .5s ease, background .5s}
+
+main{flex:1;padding:22px 26px 12px;display:flex;flex-direction:column}
+.screen{flex:1;display:flex;flex-direction:column;gap:14px}
+.screen h2{font-size:28px;line-height:1.2;margin:0;color:var(--navy);font-weight:800;outline:none}
+.lead{margin:0;color:var(--muted);max-width:68ch}
+
+.stage{position:relative;border-radius:10px;overflow:hidden;background:#cfe3f1;border:1px solid var(--line)}
+.stage svg{display:block;width:100%;height:auto}
+.caption{background:var(--navy-dk);color:#fff;padding:10px 16px;font-size:16px;line-height:1.45;border-radius:0 0 10px 10px;margin-top:-6px;min-height:52px}
+.caption[hidden]{display:none}
+.tag{position:absolute;left:12px;top:12px;background:rgba(21,40,74,.88);color:#fff;font-weight:700;font-size:14px;padding:4px 10px;border-radius:5px}
+
+.nav{display:flex;justify-content:space-between;align-items:center;padding:12px 26px 18px;gap:12px;border-top:1px solid var(--line)}
+.btn{border:0;border-radius:8px;padding:12px 22px;min-height:44px;font-weight:700;font-size:17px}
+.btn.primary{background:var(--orange);color:#fff}
+.btn.primary:hover{background:var(--orange-dk)}
+.btn.ghost{background:#fff;color:var(--navy);border:2px solid var(--navy)}
+.btn[disabled]{opacity:.4;cursor:not-allowed}
+.count{font-size:14px;color:var(--muted)}
+
+/* Title screen */
+.title-wrap{display:grid;grid-template-columns:1.1fr 1fr;gap:26px;align-items:center}
+.title-wrap h2{font-size:40px}
+.objs{margin:0;padding-left:1.2em}
+.objs li{margin:6px 0}
+
+/* Welcome */
+.welcome{display:grid;grid-template-columns:1.15fr 1fr;gap:30px;align-content:start}
+.series{margin:0 0 6px;color:var(--orange-dk);font-weight:700;font-size:16px}
+.wtitle{font-size:40px!important;line-height:1.12!important;margin:0 0 14px!important}
+.wlead{font-size:20px;margin:0 0 18px;max-width:52ch}
+.facts{margin:0;display:flex;flex-direction:column;gap:10px}
+.facts div{display:grid;grid-template-columns:130px 1fr;gap:12px;border-top:1px solid var(--line);padding-top:10px}
+.facts dt{font-weight:700;color:var(--navy)} .facts dd{margin:0}
+.wr{background:var(--panel);border-radius:12px;padding:20px 22px;border-top:6px solid var(--orange)}
+.wr h3{margin:0 0 8px;color:var(--navy);font-size:19px}
+.wr h3+ul{margin-bottom:18px}
+.howto{margin:0;padding-left:1.1em;font-size:16px} .howto li{margin:6px 0}
+.wfoot{grid-column:1/-1;margin:0;border-top:1px solid var(--line);padding-top:10px}
+.meet{display:grid;grid-template-columns:180px 1fr;gap:26px;align-items:center}
+.avatar{display:grid;place-items:center}
+.meet .lead{margin-bottom:12px}
+.meet+.caption{margin-top:10px;border-radius:10px}
+/* Senses */
+.senses{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.sense{background:var(--panel);border:2px solid transparent;border-radius:10px;padding:16px;text-align:left;display:flex;flex-direction:column;gap:8px;min-height:120px}
+.sense svg{width:46px;height:46px}
+.sense b{font-size:20px;color:var(--navy)}
+.sense[aria-expanded="true"]{border-color:var(--orange);background:#fff}
+.sense p{margin:0;font-size:16px;color:var(--ink)}
+.sense .hint{color:var(--muted);font-size:15px}
+.seen{font-size:14px;color:var(--green);font-weight:700}
+
+/* Nose */
+.callouts{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.callout{background:#FFF4D6;border-left:6px solid var(--orange);border-radius:8px;padding:14px 16px}
+.callout b{display:block;color:var(--navy);margin-bottom:4px}
+.rule{background:var(--navy);color:#fff;border-radius:10px;padding:16px 20px;font-size:20px;font-weight:700}
+
+/* Steps */
+.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.steps li{display:flex;gap:14px;align-items:flex-start;background:var(--panel);border-radius:10px;padding:12px 16px;opacity:0;transform:translateY(6px);transition:opacity .4s, transform .4s}
+.steps li.show{opacity:1;transform:none}
+.num{flex:0 0 38px;height:38px;border-radius:50%;background:var(--navy);color:#fff;display:grid;place-items:center;font-weight:800}
+.steps b{display:block}
+.steps span{color:var(--muted);font-size:16px}
+
+/* Hotspot */
+.hs{cursor:pointer}
+.hs:focus{outline:none}
+.hs:focus-visible .ring{stroke:var(--orange);stroke-width:4;stroke-dasharray:6 4;opacity:1}
+.ring{fill:transparent;stroke:transparent}
+.found .ring{stroke:#1B7F4B;stroke-width:4;opacity:1;stroke-dasharray:none}
+.check{opacity:0}
+.found .check{opacity:1}
+.hs-bar{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.pill{background:var(--navy);color:#fff;border-radius:999px;padding:6px 14px;font-weight:700}
+.tip{min-height:26px;color:var(--muted);font-size:16px}
+
+/* Decisions */
+.choices{display:flex;flex-direction:column;gap:10px}
+.choice{display:flex;gap:12px;align-items:flex-start;text-align:left;background:#fff;border:2px solid var(--line);border-radius:10px;padding:12px 16px;min-height:52px;color:var(--ink)}
+.choice:hover{border-color:var(--navy)}
+.choice .k{flex:0 0 30px;height:30px;border-radius:6px;background:var(--panel);color:var(--navy);font-weight:800;display:grid;place-items:center}
+.choice.tried{opacity:.55;text-decoration:line-through}
+.choice.right{border-color:var(--green);background:var(--green-bg)}
+.feedback{border-radius:10px;padding:14px 18px;display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.feedback.bad{background:var(--red-bg);border:2px solid var(--red)}
+.feedback.good{background:var(--green-bg);border:2px solid var(--green)}
+.feedback p{margin:0;flex:1;min-width:220px}
+.feedback strong{display:block;font-size:19px}
+.feedback.bad strong{color:var(--red)} .feedback.good strong{color:var(--green)}
+.dgrid{display:grid;grid-template-columns:1.15fr 1fr;gap:20px;align-items:start}
+
+/* Summary */
+.badge{display:flex;gap:16px;align-items:center;background:var(--panel);border-radius:12px;padding:16px 20px}
+.badge svg{flex:0 0 84px}
+.badge h3{margin:0 0 4px;color:var(--navy);font-size:22px}
+.badge p{margin:0}
+
+/* Game */
+.gready{display:grid;grid-template-columns:1.4fr 1fr;gap:24px;align-items:center}
+.gart{display:grid;place-items:center}
+.timed{display:flex;gap:10px;align-items:center;margin-top:12px;font-size:16px}
+.timed input{width:20px;height:20px;accent-color:var(--navy)}
+.ghud{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.gstreak{color:var(--orange-dk);font-weight:800;min-width:90px}
+.gtime{font-weight:800;color:var(--navy);font-size:20px;min-width:60px}
+.gbar{height:10px;background:var(--panel);border-radius:5px;overflow:hidden}
+.gbar i{display:block;height:100%;background:var(--orange);transition:width 1s linear}
+.gcard{min-height:170px;border:3px solid var(--navy);border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:22px;gap:6px;background:#fff}
+.gcard p{margin:0;font-size:28px;font-weight:700;color:var(--navy);max-width:28ch;line-height:1.25}
+.gcard.good{border-color:var(--green);background:var(--green-bg)} .gcard.bad{border-color:var(--red);background:var(--red-bg)}
+.gverdict{font-weight:800;font-size:18px} .gcard.good .gverdict{color:var(--green)} .gcard.bad .gverdict{color:var(--red)}
+.gwhy{font-size:16px;color:var(--ink)}
+.gbtns{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.gbtn{display:flex;align-items:center;justify-content:center;gap:10px;min-height:76px;border-radius:12px;border:0;font-size:22px;font-weight:800;color:#fff}
+.gbtn.risk{background:var(--red)} .gbtn.safe{background:var(--green)}
+.gbtn:hover{filter:brightness(1.08)}
+.stars{display:flex;gap:4px;flex:0 0 auto}
+.badge .stars svg{flex:0 0 44px}
+.gmiss{margin:0;padding-left:1.1em} .gmiss li{margin:8px 0}
+/* Quiz */
+.q{background:var(--panel);border-radius:12px;padding:18px 20px}
+.q h3{margin:0 0 12px;font-size:21px;color:var(--navy)}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{display:flex;gap:12px;align-items:center;background:#fff;border:2px solid var(--line);border-radius:8px;padding:10px 14px;min-height:48px;cursor:pointer}
+.opt input{width:20px;height:20px;accent-color:var(--navy)}
+.opt.is-right{border-color:var(--green);background:var(--green-bg)}
+.opt.is-wrong{border-color:var(--red);background:var(--red-bg)}
+.seq{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.seq li{display:flex;align-items:center;gap:10px;background:#fff;border:2px solid var(--line);border-radius:8px;padding:8px 10px 8px 14px}
+.seq li span{flex:1}
+.mv{width:40px;height:40px;border-radius:6px;border:1.5px solid var(--navy);background:#fff;color:var(--navy);font-weight:800}
+.mv[disabled]{opacity:.3}
+.seq li.is-right{border-color:var(--green);background:var(--green-bg)}
+.seq li.is-wrong{border-color:var(--red);background:var(--red-bg)}
+.qfb{margin-top:12px;border-radius:8px;padding:10px 14px}
+.qfb.good{background:var(--green-bg)} .qfb.bad{background:var(--red-bg)}
+.score{font-size:56px;font-weight:800;color:var(--navy);line-height:1}
+
+/* Downloads */
+.dls{background:var(--panel);border-radius:12px;padding:18px 20px;border-top:6px solid var(--orange)}
+.dls h3{margin:0 0 12px;color:var(--navy);font-size:20px}
+.dlgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.dl{display:flex;flex-direction:column;gap:4px;text-align:left;background:#fff;border:2px solid var(--line);border-radius:10px;padding:14px 16px;min-height:44px;color:var(--ink)}
+.dl:hover{border-color:var(--navy)}
+.dlt{font-weight:800;color:var(--navy);font-size:17px;display:flex;align-items:center;gap:8px}
+.dlt::before{content:"";width:18px;height:18px;flex:0 0 18px;background:var(--orange);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 3v12m0 0l-5-5m5 5l5-5M4 20h16' stroke='black' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 3v12m0 0l-5-5m5 5l5-5M4 20h16' stroke='black' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat}
+.dld{font-size:15px;color:var(--muted)}
+/* Tools slide */
+.tools{width:100%;border-collapse:collapse;font-size:16px}
+.tools th{background:var(--navy);color:#fff;text-align:left;padding:10px 12px;font-weight:700}
+.tools td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+.tools tr:nth-child(even) td{background:#f8f9fb}
+.tools td:first-child{font-weight:700;color:var(--navy);white-space:nowrap}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+.fine{font-size:14px;color:var(--muted)}
+
+@keyframes rise{0%{transform:translateY(0);opacity:.9}100%{transform:translateY(-26px);opacity:0}}
+@keyframes blow{0%{transform:translate(0,0);opacity:1}100%{transform:translate(18px,-34px);opacity:0}}
+@keyframes waft{0%,100%{opacity:.15}50%{opacity:.85}}
+@keyframes puff{0%{transform:translate(0,0) scale(.6);opacity:.7}100%{transform:translate(-8px,-30px) scale(1.4);opacity:0}}
+@keyframes slidein{from{transform:translateX(320px)}to{transform:translateX(0)}}
+@keyframes dig{0%,100%{transform:rotate(0)}50%{transform:rotate(9deg)}}
+.bub{animation:rise 1.8s infinite ease-out}
+.dust{animation:blow 1.4s infinite ease-out}
+.odor{animation:waft 2.2s infinite ease-in-out}
+.exh{animation:puff 1.6s infinite ease-out;transform-box:fill-box;transform-origin:center}
+.truck-in{animation:slidein 2.2s ease-out both}
+.arm{transform-origin:205px 255px;animation:dig 2.8s infinite ease-in-out}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+  .steps li{opacity:1;transform:none}
+}
+@media (max-width:760px){
+  .dlgrid{grid-template-columns:1fr}
+  .welcome,.meet,.gready{grid-template-columns:1fr} .gart{display:none} .gcard p{font-size:22px} .wtitle{font-size:30px!important} .facts div{grid-template-columns:1fr;gap:2px}
+  main{padding:16px 14px 8px} .nav{padding:10px 14px 14px}
+  .title-wrap,.dgrid{grid-template-columns:1fr}
+  .senses,.callouts{grid-template-columns:1fr}
+  .screen h2{font-size:24px} .title-wrap h2{font-size:30px}
+  .bar h1{font-size:15px}
+}
+</style>
+</head>
+<body>
+<div class="player">
+  <header class="bar">
+    <h1>Natural Gas Leak Recognition and Response</h1>
+    <div class="meter" id="meter" aria-live="polite">
+      <span>Crew Safety</span>
+      <div class="track" aria-hidden="true"><div class="fill" id="meterFill" style="width:100%"></div></div>
+      <span id="meterPct">100%</span>
+    </div>
+    <button class="tbtn" id="ccBtn" aria-pressed="true" title="Show or hide captions">Captions</button>
+    <button class="tbtn" id="voBtn" aria-pressed="false" title="Read narration aloud">Narration</button>
+    <button class="tbtn" id="notesBtn" title="How the designer uses the tools named in the job description">Designer notes</button>
+  </header>
+  <div class="progress" aria-hidden="true"><i id="prog"></i></div>
+  <main id="main" tabindex="-1"></main>
+  <footer class="nav">
+    <button class="btn ghost" id="backBtn">Back</button>
+    <span class="count" id="count"></span>
+    <button class="btn primary" id="nextBtn">Next</button>
+  </footer>
+</div>
+<div class="sr" aria-live="polite" id="live"></div>
+<script type="application/json" id="dlData">{"checklist": {"name": "Leak_Response_Checklist.pdf", "b64": "JVBERi0xLjQKJZOMi54gUmVwb3J0TGFiIEdlbmVyYXRlZCBQREYgZG9jdW1lbnQgKG9wZW5zb3VyY2UpCjEgMCBvYmoKPDwKL0YxIDIgMCBSIC9GMiAzIDAgUiAvRjMgNCAwIFIKPj4KZW5kb2JqCjIgMCBvYmoKPDwKL0Jhc2VGb250IC9IZWx2ZXRpY2EgL0VuY29kaW5nIC9XaW5BbnNpRW5jb2RpbmcgL05hbWUgL0YxIC9TdWJ0eXBlIC9UeXBlMSAvVHlwZSAvRm9udAo+PgplbmRvYmoKMyAwIG9iago8PAovQmFzZUZvbnQgL0hlbHZldGljYS1Cb2xkIC9FbmNvZGluZyAvV2luQW5zaUVuY29kaW5nIC9OYW1lIC9GMiAvU3VidHlwZSAvVHlwZTEgL1R5cGUgL0ZvbnQKPj4KZW5kb2JqCjQgMCBvYmoKPDwKL0Jhc2VGb250IC9IZWx2ZXRpY2EtT2JsaXF1ZSAvRW5jb2RpbmcgL1dpbkFuc2lFbmNvZGluZyAvTmFtZSAvRjMgL1N1YnR5cGUgL1R5cGUxIC9UeXBlIC9Gb250Cj4+CmVuZG9iago1IDAgb2JqCjw8Ci9Db250ZW50cyA5IDAgUiAvTWVkaWFCb3ggWyAwIDAgNjEyIDc5MiBdIC9QYXJlbnQgOCAwIFIgL1Jlc291cmNlcyA8PAovRm9udCAxIDAgUiAvUHJvY1NldCBbIC9QREYgL1RleHQgL0ltYWdlQiAvSW1hZ2VDIC9JbWFnZUkgXQo+PiAvUm90YXRlIDAgL1RyYW5zIDw8Cgo+PiAKICAvVHlwZSAvUGFnZQo+PgplbmRvYmoKNiAwIG9iago8PAovUGFnZU1vZGUgL1VzZU5vbmUgL1BhZ2VzIDggMCBSIC9UeXBlIC9DYXRhbG9nCj4+CmVuZG9iago3IDAgb2JqCjw8Ci9BdXRob3IgKE5heWEgUm9xdWVtb3JlKSAvQ3JlYXRpb25EYXRlIChEOjIwMjYwOTMwMDMxMzIwKzAwJzAwJykgL0NyZWF0b3IgKGFub255bW91cykgL0tleXdvcmRzICgpIC9Nb2REYXRlIChEOjIwMjYwOTMwMDMxMzIwKzAwJzAwJykgL1Byb2R1Y2VyIChSZXBvcnRMYWIgUERGIExpYnJhcnkgLSBcKG9wZW5zb3VyY2VcKSkgCiAgL1N1YmplY3QgKEpvYiBhaWQgLSBwb3J0Zm9saW8gc2FtcGxlKSAvVGl0bGUgKE5hdHVyYWwgR2FzIExlYWsgUmVzcG9uc2UgQ2hlY2tsaXN0KSAvVHJhcHBlZCAvRmFsc2UKPj4KZW5kb2JqCjggMCBvYmoKPDwKL0NvdW50IDEgL0tpZHMgWyA1IDAgUiBdIC9UeXBlIC9QYWdlcwo+PgplbmRvYmoKOSAwIG9iago8PAovRmlsdGVyIFsgL0FTQ0lJODVEZWNvZGUgL0ZsYXRlRGVjb2RlIF0gL0xlbmd0aCAzMzc0Cj4+CnN0cmVhbQpHYXVJOT5CQU9XKDRiPDgvJ19BVE5scl5MbjxTTFQ7L0Y1RTcoJz1kMT5TTWMkVmBvIilpQFRjYi0jcF1hNnUibitAUztOQSVCYiUpJiItREtBNEZmVUhOU2RhNWMoQSlXOXVrcnE9Vj46Vl5jSVNvUE9oYFw8aGoqKUNnLiY7KTQ/MyxnKl1BO2lINlcwVyY7XTghSHIhSHM+KDwjUU46JUBsKDEsP0tHa0hrajZwKjcidXBlWzVvc2BVKmNeKihScGhJKXQ9VSY7bklET1Y/RjxuXC9ZNi5LXXFrNSR1NFxjI0VDSEZ1WTVXaT1zOyxpSHInVDlnOzxoVlA+NUFwJzhmalo5PEolUCNwXitfOickTmI3YF1EM2hPO1lWJyJXKVY6LzRjPF06JFkiZGxIOFQjMz1fcnJMJEVKT05IcToyXmdvMlRxJ1grOjlCI25LUTF0Iz4wTGc3QmRnPT0jcHVvRUFiZE9odXBkW0VFME5SSTI5RmkmNHQ5YVVFQ1MhZUtAaUhcWjpJRm9FKDFgYDxEQTNoLCUnQkJhUmhcIztTJ09XSjhVYTNjZ15EXyNmVV9SdEAyJ2dQW0NuPS1GK3BLNVs7Ok04NiE7JXVbVyRBNUQoQlBQOVssOj5TS1tyLnJbNXFXaGZXbWQ6Jjs2LCsiYGxRYV0iZkM6LClfcklkOGQtS20zK25lMTtOL0dlVyY5TU9uQj1ESSRraS02Zz5YQ0coLmdMZTQoUXRNLC1aSmVWZmloSGtaPiNLXXBFKFFaK2RwW0wqOW4vV1NVQEhMRyVqamlTVkZbbUZQPnIoVDpnXG5jWjlkLGlVPmAuaiREWz0jPTMkK1AjOlNhT24/MkFScWVSPCNJcU9kTFlQbz45PiwodTZTIjBXQm5uR3BGVj9KdCNwQzs/JFZYSl1mI0xhOTRgJUMwZjdRLVE9J09yb0VWcmAsZkRIOUBwQDp1I1NXTjZeQUViJS8tTFtSW0RyOixdI2VuUixMVEZVcDRLQkFLLyF0OEBqckVmdEdCXlUjK1ksVWZDJzhLTi9LXi1GPTZCaW0xPDBtXG82RkI3QVI4RVlrLUBWRXFBOTN0KXNySmQmLGFlXm0ubT4zQj9jbmVwQE8qPWQoKilzXmgtMylOaWpuSzZQP040QzU0UiMuMk9eOEVRaEdFNSktSWg3cmRdNWxacDZbQkBWaUtGazBwTTkrXWskNCFlQFlDWXVCNFowVVhqRlJwYmdxbUxgKzdqNyNDImdGVilgdGAjImltODNUcC5KSDxgIjdOJFB0PUVgNjczS25BSCFedCRAVWRWYk4wNExjKjFYUlZVQG9FcUxZX2NEaU4pbEgucSFMSk09TlgxKjA1P0tAcW9Ra20ySlNwWktIZCozTzNmRWRLZ1htMlAodVM8WkJqIWNkLEs+YGQpN006MzpwKllHKm1KLWBrMzhCTU44U0IiVklGZmhXNjQkVEE+Lk5DX19HJj5YUys6MzlZbDh1T1lWPUFBOzQsN3FJS144NFwtJ0A1dTFxTT9PbWZkTEBdYyktP2E6Q2hFbidfW2gwYFI5aGtyNkU6a3JlWUJIZGA6ODpIVy1KUnJTVEFBYj9AKyFNU2smSCo4QXEoMFFpZCJrcGUwUTBKSGdlJTArVl9sJjM4Skohb29PclRwVUwycyZpVWBuL1lXLFlLOVZRNFA5b0NBUlRySFhsTGYiKypdPWxfWmMoNkNDYU1zRm9JV1ZtZ0tQaWsucFspdDNpSHNGSDY6SnVXIWI9KkpPNUIrc0wkSWc0bydfKEZDPkE4O0VrKGBfQEQlbXRVRW8sIiZXRGVwbFcpSFE4OD1iV2RAWVFLdWxEVFNuW0I3IicpPHFwOWJsZDVGa3ArJDIqZChHWW5TRHUmTFkjRyU2Pz0oKUdqODZWOi5oKDdJJXF0XyhsPTBIZEtwc1YvQlk5Vyc3TkolRk9UX1ZGWW43azFwT2ktI21FcGdSdTE4QD9FXlhLWGZWW10kM1g3YSZDdS9VTFtyYmc0X0RtZj50SUknUmpQTXFoVzdtNGZHVzgvWjk0UjFLc25jTjdccG5VTCtccyg5U2w4dVdMKyIuOTptcj8mbDVxbidyPmdkNlwiMFkwdTpHYC9xKGFEOSZuVVVGcTFdZjlVYClNWUAoJCxWZSZRQTRJJzhGUDlpXFRUX2pCUDxmNlIqQTlTTzwlPTJULDtEYyIrJGc/PWU5cSFiVWxyP1dNVFRHJklxU0RIdVtGUGRpaGJCTFJjMTFHYVRVJFdNXW5ASSFxQCxTQyVOYSRYWjttWW1ULHQpVlcsIXRGREQ6XyhhPy0xZkw5MEchZFxEU3Q0TCFHY0BqSl5JKlo6QzU8NipINGRCYnFdNFlpPGNRJj5kMTdJNTxfVV9GMGUlLTBmaiRsPjhvLmRibFozWWlZUDdYTyoxbFA8TDJJTE4xWD0uLlUhcVRnRigtbWwnPD8qZkQ0TEpIRzFpYD4nMClaO1JCNENKbEtiN0kuPihEM08/LS1VUUQkJ1JQVzBZNmxeVUZPWiU+Pm5Cajk6NT5uJkxMVnRkQTlWVTxiWFxOZzxTWy1LTHJOQXJbUzg8bEVsNFE1WEpDcFlPcitsXXJsTmlAMidBa01eSFZlUiFNW0hGIzZfN2BOSkEzKks/T0ZtY0tINjdaM1djRyIsUWA+UCxyJ1piITRKO2RqOzo6K1MpSF9UUCxmVS0nLFlEIVFXZFsqO1JxIz8mLE1AME5OY0tALD1VOWpIPSNCLl5WRUBhZytUZGUuRmpVKG5qISkpSlJ0YC8tLHNsazxhXStSJkosPTxdLSxdWy8iPnA7PldrKitrWDQpXkMoaSMoUkMsYiMlanMzLFlmWzNhQjlqJmFrdVdqa19hXWZJZylqI0ttaC9zKC5UVDlQdDJ1UTc6SDVuXG0sRVBCXiVDMGN1ZVtRJVxPR2t1Qy8mMVZWbzIiRSNRbUYxPChzRGRgcSNPNCtXN01xUjxXWmFVMi5lRlJTYCZhVDNNS1BjS2xrIiszL0hKQVxbaU1VPCspIjZLbElzISkkWiU7MllJXVVZUjhCSDs4WFFYNWwhJz9UXUFVaDUpXUVUWlUpWDY9YGtRRl03K2Y3KHE3MF1YXk45TyhSSnQ3IVRpcWs6Sk1PZ29uOlxsJT9uVCowcTNiZCQtWHVWb1RgVWkqJFcnWDprKl1PIWw4KDdpb1FZMHRHRWgsKmdRPUImXzVAaERaPzw0PlFbbkAnIW5ya11MTW5kSGlkdSdccjQqJEsjakRqMzAuLzdINEwoYGloTmJZKzw6OmQlZDQyIjQ0XyVZKytpJSgmUXBOU1tQK3QqRExKZE0ocGk6QWtLWlVMYlNtJy5ra0FsVm1iSitVQjQpZk1AS05RQ0ptTjtca2daSVtSZUJvU1xOUC0kKSZnLCFmSWRjUDgnbCFfJygyJzYrKlo3QDNKUWxSdUNbNjJUVTwrZ08sVSJyVks4WVxKTzdGL1NkQ1BIIilWR0ZnWShPXiRSUCVeaz9VOz4jb1pIbXE3b0UvbG5sKWFrSXEwN2g7Q0hAJyppPTNGPT9CNSwqNGRodE4qPiY4XUc6NWgqT0c8RlZTLztvaW44Vy9pNWdJdCFfZUM1NUNOU2AhMVZxcm8nQ3VRPSdacGBmM1BISzZBSDBiY09qKkxyZ25bOXBPN0VlRyUjTyNJMitqbVJCPmEhRVoyPEtkR1EkcWRIJGJlTTdGKlxBMGF1VCRcUXVBbGJTdG5cLj5GYDFFJCpxMl03QDZSbVMsZWdSVlUwZkRGTXVlUCcrMmE6cmQlcE9ZZT0pLEdNIiI1Y10wRSMrOWpUbyEkNDpNTTdsSSRVKi1QSzZPRWpXJic0UV1QOiU0cjVZVVteKjAmTWxzTlwhbXBLIWVwQS4/Kk4/J1MxXSdbT1NxbyJeXlUjLzkxWmJdUDtUcl1gKzpXRmFVXnFfc0ZqMmo0b0NgYEhJaDciZ2xraDlCbCZWSWdebFNwIUxLMEduQGZcZUUpRUo+UCUyU05tV0w/Nm5ka3Fac04kXWgxSGc5N2tqQTIzcXUnX29FJVBoX3Bzamg7am48MFpMTyNFPUdvNiI+bjwqRHU6W1BIWTtKSTxrXEtfaXQmZWU6Jl0ucGRmOzpPblYmJUdAL0ZGM1QsKF5bWSg7MidgR0hpbFBNOy4nNS8qcDEyIiZgbUhFQmVHIW1lYTAhREo4VFtGXj0rW1ZBTV1YYF5RTD1cNXNrT14+L2BmbD4+WFQnKEklZD9NbyUzNDhBQU5MJiVUY2tuN0BLTSxAXHU3Y09WdUVCa1JSTldXcHApOjU5czNHbSM8MGFXSl9UYmU8ajBcPTQ3SUVfamMuQUZmUT85bCI0KyglRUw7VExqWWlULC5jVG91WSomay9gPCgvZDNbQzJwOV9FZGtDOltbLksscGNMSEBvOShMLGshbTI7bSw0cS1gMlVOPiFeYV0pJioyRCgiOWJeQyxcbyFVVy8+UGx+PmVuZHN0cmVhbQplbmRvYmoKeHJlZgowIDEwCjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDA2MSAwMDAwMCBuIAowMDAwMDAwMTEyIDAwMDAwIG4gCjAwMDAwMDAyMTkgMDAwMDAgbiAKMDAwMDAwMDMzMSAwMDAwMCBuIAowMDAwMDAwNDQ2IDAwMDAwIG4gCjAwMDAwMDA2MzkgMDAwMDAgbiAKMDAwMDAwMDcwNyAwMDAwMCBuIAowMDAwMDAxMDE1IDAwMDAwIG4gCjAwMDAwMDEwNzQgMDAwMDAgbiAKdHJhaWxlcgo8PAovSUQgCls8ODY1OTBiYmI1MzNkNWFlZDZjNzBhNzU5ZmU3NGU2MTY+PDg2NTkwYmJiNTMzZDVhZWQ2YzcwYTc1OWZlNzRlNjE2Pl0KJSBSZXBvcnRMYWIgZ2VuZXJhdGVkIFBERiBkb2N1bWVudCAtLSBkaWdlc3QgKG9wZW5zb3VyY2UpCgovSW5mbyA3IDAgUgovUm9vdCA2IDAgUgovU2l6ZSAxMAo+PgpzdGFydHhyZWYKNDUzOQolJUVPRgo="}, "leader": {"name": "Leaders_Guide_Tailgate_Huddle.pdf", "b64": "JVBERi0xLjQKJZOMi54gUmVwb3J0TGFiIEdlbmVyYXRlZCBQREYgZG9jdW1lbnQgKG9wZW5zb3VyY2UpCjEgMCBvYmoKPDwKL0YxIDIgMCBSIC9GMiAzIDAgUiAvRjMgNCAwIFIKPj4KZW5kb2JqCjIgMCBvYmoKPDwKL0Jhc2VGb250IC9IZWx2ZXRpY2EgL0VuY29kaW5nIC9XaW5BbnNpRW5jb2RpbmcgL05hbWUgL0YxIC9TdWJ0eXBlIC9UeXBlMSAvVHlwZSAvRm9udAo+PgplbmRvYmoKMyAwIG9iago8PAovQmFzZUZvbnQgL0hlbHZldGljYS1Cb2xkIC9FbmNvZGluZyAvV2luQW5zaUVuY29kaW5nIC9OYW1lIC9GMiAvU3VidHlwZSAvVHlwZTEgL1R5cGUgL0ZvbnQKPj4KZW5kb2JqCjQgMCBvYmoKPDwKL0Jhc2VGb250IC9IZWx2ZXRpY2EtT2JsaXF1ZSAvRW5jb2RpbmcgL1dpbkFuc2lFbmNvZGluZyAvTmFtZSAvRjMgL1N1YnR5cGUgL1R5cGUxIC9UeXBlIC9Gb250Cj4+CmVuZG9iago1IDAgb2JqCjw8Ci9Db250ZW50cyAxMCAwIFIgL01lZGlhQm94IFsgMCAwIDYxMiA3OTIgXSAvUGFyZW50IDkgMCBSIC9SZXNvdXJjZXMgPDwKL0ZvbnQgMSAwIFIgL1Byb2NTZXQgWyAvUERGIC9UZXh0IC9JbWFnZUIgL0ltYWdlQyAvSW1hZ2VJIF0KPj4gL1JvdGF0ZSAwIC9UcmFucyA8PAoKPj4gCiAgL1R5cGUgL1BhZ2UKPj4KZW5kb2JqCjYgMCBvYmoKPDwKL0NvbnRlbnRzIDExIDAgUiAvTWVkaWFCb3ggWyAwIDAgNjEyIDc5MiBdIC9QYXJlbnQgOSAwIFIgL1Jlc291cmNlcyA8PAovRm9udCAxIDAgUiAvUHJvY1NldCBbIC9QREYgL1RleHQgL0ltYWdlQiAvSW1hZ2VDIC9JbWFnZUkgXQo+PiAvUm90YXRlIDAgL1RyYW5zIDw8Cgo+PiAKICAvVHlwZSAvUGFnZQo+PgplbmRvYmoKNyAwIG9iago8PAovUGFnZU1vZGUgL1VzZU5vbmUgL1BhZ2VzIDkgMCBSIC9UeXBlIC9DYXRhbG9nCj4+CmVuZG9iago4IDAgb2JqCjw8Ci9BdXRob3IgKE5heWEgUm9xdWVtb3JlKSAvQ3JlYXRpb25EYXRlIChEOjIwMjYwOTMwMDQyNTU4KzAwJzAwJykgL0NyZWF0b3IgKFwodW5zcGVjaWZpZWRcKSkgL0tleXdvcmRzICgpIC9Nb2REYXRlIChEOjIwMjYwOTMwMDQyNTU4KzAwJzAwJykgL1Byb2R1Y2VyIChSZXBvcnRMYWIgUERGIExpYnJhcnkgLSBcKG9wZW5zb3VyY2VcKSkgCiAgL1N1YmplY3QgKFwodW5zcGVjaWZpZWRcKSkgL1RpdGxlIChMZWFkZXIncyBHdWlkZTogR2FzIExlYWsgVGFpbGdhdGUgSHVkZGxlKSAvVHJhcHBlZCAvRmFsc2UKPj4KZW5kb2JqCjkgMCBvYmoKPDwKL0NvdW50IDIgL0tpZHMgWyA1IDAgUiA2IDAgUiBdIC9UeXBlIC9QYWdlcwo+PgplbmRvYmoKMTAgMCBvYmoKPDwKL0ZpbHRlciBbIC9BU0NJSTg1RGVjb2RlIC9GbGF0ZURlY29kZSBdIC9MZW5ndGggMjc5MQo+PgpzdHJlYW0KR2F1YFVtclI1QScpaDc1QE9HT0JGdEI0VU1OakEmRTBLQC9CbVdHKi1DVyV1WTRockArVj9GdFZ1VUwyMVxccmEvUCZMQkNzZyFTNGFTLnUmLilgZys1WF87TCw/aGVrbDhuLjZ1UV0wW3NzKUc3UG49RzMhciwzSFZgUERjQC50Y19DLysrLjBXUi45bnNBaGlbRylPQTxwakMqWmcoXTkoQ1BZNjpURF9nVHQ5S1M1K2VgJDpgLU4zZkdIbV9mN2BraGBtWS1xaWdfc1hHTDszbCQhXDkxdW9aRmg+LnJ0Z1Q/TSpFLlciMEZULFUoPmFoIkZoVU8qQllAbzdeXEouZmVCPGRQOTlBZT9IP0hSMiJwNkI3SVthVEttX0JBQFFga2dhKCJsYS1GTzJCRjpQazdeUV9JQWwoOFMzOU8uQXE4VlU8PCJVXUBONzQ3L25NLlRzRHRuUkY+YkViNT9rLktOPitRU1tAIlcmP25nW0c6PFxlajNsNjxSKVtDYlZLWm8tTVlzJnBmI0I6YFdBSWJfPiprRTc+UF1iVkpqL0dWQ1Vxa18jNSJjblY1JmFsLnBDUXI7SXJmaDxAWU1zMlArJ2dAQTpwKmhsNSQ2UUI1RSg8Mk8nZ2c/OzVtMjU2Zl1wZ1FtYT9FSjJWRFMhKy09Iy0zSTsmZ21vaDIudShuQ2tSaiEnPDdlO0cqLSVKOzE9RUY1VXVcJWpOJiM+TClhTElKZV5Pays+alpaYyNKRD1fZk9XSUpLaTw4J1ZcWzxAdFQiLGU2N2lfYT5nYTIuN3Q3L1NVdGI1bHEnLDFdXGtFLElGImVrQ2ovbiJeK1JqOGZCXDRhOjU5NEMrXXMsRTMiKmk4KT1JUV1qOF0/XFtJbGdaaVBQZzAhU1cxUDs2K1o1OSwrJW9BRz8yRGBLT2EtZixbXDtBK2JFQ1AtPkJpaGY6LjhgQCQqMCUnK0pLbnJcQDdsOCNoNDAhYCdqJFosb3AzPipCTmJgXzVkLW4zVkdTX109UiRMbDknMmo0Q1prYVcvUmlBa28hWTY3VGJWWS5NbzpDRlxBOUhDU2RnMWB1ZzAyTk5HJUBgRUAnLSVOOEswKjM4THRqOkkxSD9PJFdTV1tHUUAqaEZgXytCOiNaZ0hpNFo0WFkzOilHSV4qTzNpKGciLjFiQi80KDBhTFBBVV0iXURyI2xVQjNQJXEiM0x1VW9NTGYuNkAiVFlNc1BJdUY6QVNWVXMqRCFyNWJgTDpKVjQzLFBxci1ZT3RULD9UU2QnLUdJWTJzM1hHW1YqTSxNWDhxbyQmL1xcJWooX0dXPjotXWYuUG9mREtxayVNWCQvQGpuUEEyLCVqNHUsYCx1Uy8qZFFCXUk/JDk1KTsjUjJLLFgkUT5kQTpiMCImJXBzMGZeXldOPlwvLURcJSclZD1eUmVHN1RFQmFwclRUQEZbXkxLW15cR2dALiczZC5tYSkwO3REbHVWLWw8UyNFQExUKk10bio9KzEkKDcjLFIpRFFRTCFsP2FwX2hQWUdAc0lLUnRncnU2WCJicWsiZDpPbVRAMUBgLnI0XThfWXRJa2YsbVJibnJXZEEpMk9XQ3FuY049Mzlyb24vbG4rZXFDWTQiWnViIWZrJj5iIkZaKz5NKDInYWNsNnNcckVhR3IlaEtgXG5MTDBaTlFaaD8pWjg5ZVddPC9vJTNYR1whR2lvLlpELDwpRHE2ImlhKyhjT0RmckhhQiU8RSNqV3FjJjkxVTxmbCdNWStSU0BBUnBsNlhnUTxbImZQWj4vZztCW2hzMi5zZFRfcFw+WyZaLDUqMXFWbSs5V1NIP00wVU5qZG9uM086OVFndWZnNVtYYXReX1g+M2Uqbyk/MDwrSSQxJEw3WzU5Jm4/WGdJJkVeOkopamdpUEwuJ2tfZzVGQmFRM3FBbDlyXStTPl0wRlVNQyddNF5KLkVsLWtpVWMqKydEPSs1XF5nNEosPWlWZTxuLDRdJipVcFNYM2YjaGo5VmxnKlsiIi1WQTNYY0R1azo8VishSVtyS0FLZ1A6bWxzVllzbyZOTS4lWUU+OjR1ZytAJlZRcTwxbC5hOWRmITtqL2tTbThEaGl0JCJuIk1jSDFIITJgcjM6NC46LkNMN1paJy1hNXRPJzpJN0BPSi9TaDI5XUttKHMqOGw5STc2ZVAsdGg0TVQlUTdxRWMiRVUkRig2ZmtJSl91W0guMCswOypxO0tsR1hJQ0A0ZlBiJjJPWV5Ib11YLDUnVylaYGpyVGlNa21YMWU4WzxNQzEnJExsME1UTSYkZUlWPCJLcSpRLkVIZCxAV2klL0JxP1k4XXBqIVQ+bk8hTmpNI1orXkVPJlNoSnBTYGVjY2c0OT9lQ3VIW1U/ZFRrKExhPkVLTVcnMExvbUMqQj9BbjxMNypbNXRCbldsMSI5RT8vZVwvMUk9WFpGTC80RzMkWTtTVUZfXVRnPkFfYDM2bktaQXU1KVFoVE0ndCJeWSFCLCMvRz8hLVBzUi1hVCJdYkNLOSsqO0ozOlBuTzNCTDtRczQoNGNJYWNLOm5ibk1ia1peYF5QMSg2KE1zODY1cSkoR0QyS29cUlslaFc8MWNlU2tXKWQqKXBUPm8rPUIwTC5qPnJDX1lBVEQ0TFA/MionLTxrU15MZGgyTi9zQGdFKyZkSDI4PEVqPC5mQTFhTFItPXRPS2c5O1djdW8tLHBWKUFPOyZQbltoWk5KK1lrNXNYYSY8dGIuNzcnOEFMV1xzMkdQbVouUCxBVzlUN0szI1hpLGMya2NKJXQhMERfPnJhYEIwTiYmTylJWSxBRkgjYmVgKFtgPz88QSolNzdSSTwwMD8pJCY8aD5yJjZZSFVtb1g/XFtrIjJOajpqQDY6dSQlPVk4QyM9TjcxcktvTFZzVmpkJF06LE9XU3MqJlRKdU1VXjxfJlVwRE5HczUkU1EpVVtjKEEnOz9LM0g6Ni51MiFvVFdsL1stZ1RdaCgtVFJZaCJHXmhlNlM4OlRtbGhuNTFxV2M4LkNDbDl1YiY+X0BRdG40ZTs7Pi0iXDNANGhfXFxNLEpwSVpURzEqZnRFO25pdVcsWEI3cj9AUCNyYC1mV1JDRWs+LSdqblknZHFEOzFXcXFKSkZINVdlQXU7S19pIU1xQmNGSiI5ImIzZmldMzwtYnRHcC40XzlsbiFSNk1YQmclZzVQJ10xMmloM05GOWpNYy1dOiJLbCMmaGVsJT1cSyJHXz1YSF85R1xrR2RdOUgoVVcxTlNYMUdOXSNcLWU3QlJFL1hWdWQtYSlRT2cscjBGJkMxNUBwbzpcM3MyMjlUPV0vI102bC5tcWhpRi9NRCtnMypJSzRYISVLbmJXVGA2NTJjbWo1bCU1IS1IVE5BYUxzIW1iUTA9XjtxXFpQYy9RJ1E/OzRhc1hXT2VrTFgyLDdMRz1VYGFNJiVkNCFaLnNzO0Q9dC5JIiEiP2U4Q2JNX242WkRwY0RRVFYyazlaY1UhaW5XNmRraEpdOlZTcz1cLWpca2toZCJWYjlwT0E5OmhDNSQ6bmpmQVx1Wj5WXSZRImU1dEJIbHRuK0VWS19uOS41LTgwQzhVXiVCKGBDQm1JakhEOT8mOWU+MXFEJyREXmxZQ0FkOWlwZzVfOE5VJSdYcXMiOFpETTMmZC82OHIicWE2W0pTPVNNXl5kcyI0XyRQbkplKExATz11PiJ+PmVuZHN0cmVhbQplbmRvYmoKMTEgMCBvYmoKPDwKL0ZpbHRlciBbIC9BU0NJSTg1RGVjb2RlIC9GbGF0ZURlY29kZSBdIC9MZW5ndGggMTQ4Ngo+PgpzdHJlYW0KR2F1YFQ5bG8mSSZBQEMybSZhI1A3TEFScjRaLixIMktATmxkXUxVbC02V1stOExQXXBORnIlSV0pWUUqUTZnPjVDNTEvPVVtRFlNZ1lHQCpHU0U4Zjt0bF1GITpRZlNqNm1bMUtCV2VYNVFbPFpfZisjT3BDWCpYTC9BOzJkNTpELCtGXTMhKSJgMlRpS24kbTVfTkwmJ0A2ZW1EYXUpR2RfbE5EIkNbQzwkamBcTCdLaD9LO0UkZitMKkolWm5ZME8vSjlkRl1sZ1pdJTQvcj0xM1Euc0U+Wy5aLiRpTkYlbWkuW1FUNCNmUTEkOyRBS1s1PileYFE6QihaR2x0XlZUUFpHOGxraS0pIXVZLWNvY3NeQk0uK1ZVPCYscFVnXDU+SmRNYGVAXnI2V1g9ITlqOFxkRTxPRGklKFo8Vz4yUy4iaGRbLFsvYSQ8IT9BXnFWcG1uYi44LGRxay5PS148TlQ9IzJMYjo+X0hNRDwwOURsKF1QJ2lJP0JiPmZfREQ/RGhGX3I0WEVEYV5TMytSbE9yS241WG0tKjNRSTY+IlJdPVwoKThoLFwtSiJsaVQwSVlMSDRiUVFGMy04VUxYWS1jPj5oSSdGNyRubEU+O3JuQElqRGMmYT89QXAsay1LJE1ObUBtNVNbImVhNDUyIylMdUpEZ3A6UXU/RFhZRTxsVyoxO0pjMD9cYGJeMllyam8uYV4/O1g6Zmc5NW02SWxAVD5eVmNeXGAtKiVDbClIMChCc1NAaEU3Tz46QzspJztTSVJxcmMrUXBoX0xxNztkMjt0MkhqLiYwRklvbFE6M05HOFYsZ1EhYnJyXF5gaDA5JUFiS0FLWjRRcVtEciZYL01eN0BTPWguOTZETEwkbzZidTBwSktGbStBR1h0ZWluQzokbT4wWz5ba25RQj0zLlVka0ZCPGJXPF1GSFBmUGwoUUZLTShDZURuTywmJzdWPmQxKFZxJCxCWkM/YUpTMEpfOWY9OVokai5UMitgNF43amlwWDZoQF86VWFULSgnNGRJUGM5LWddQyE9JC1BWTdrbiw5aVxZV2IlIUU/Jk8kYEY2IXEnT21hLydcUFM3J1pvJktKZCoqLHFLdGRGNV1yVWpJb15ecjMvZFhIZCtQOzJxRWAoRWlWTl4vZzY9Km1OZE9RLWxvdSJQTWYkISRBKkkoXVFJaiRUTjgnSDpnNyRaZm9tcjBUL1xVIjEqZStwITRtWzdkTWw1Nz5aJlQuOnBOJ2pyLmtgcjY8V2VLXDtQKzwwbV1OQk9zMVhNLG9sRFBERjFzSU83cWdgMyRLbGE0Nk1eO2lbUFNYXyFjaWNzciwkVyNjMGpkSFleWichMzJbLTUjNS1vaDlaPyNbSG5vSjxcS2U/Jl9vPmE2ZChTLnJkbjw0YkgkODNBPzpqT1RVZVwnZmR0KSNUSWUyNz46cS8kSl1YWj87dGlCLSVOMnBrKEZSdW4zUCNRMFNyaGgiLVtFOzMldFpvO1NRK2ZxbiZqST9DbVNqQnRXbWVGSVMuOG5TWGNwLGkxLGNHTidfNm4oV1hEZTlWKlsmaktvQEpCJXEmMSMwSmJPViQqR2g7Qyg7U0wlW2kkQ0dYKExiPVF0STVGTywrSi81MS4tYjhkZGA2czRNckA1TEBtKDZJNWo6IixLWzNHYlFRWS8xJDMvYm9xSU84WEI1P24vYFAsLkQnSzhfLFRqPFc3aFMkVm9vbzw+S0BMN0tIJ1YlIihWKTQzQk5WaFgsTTdfXSImQjdqIWxDZSlmUFQsKU1CYF5DTUFWRGtgTkknSS4kQSY7QV0yOyRXTFhVTmlCISI9NFlsNilRS1gvVTQuSTVeYVwyTiNkXz03VFhAUCxqQUFWYiYvRzFRLXJdWXJXLmdJYSdjQVNpcXFXOzYkNnFmSVhTSWM9I2VWNnRNbW1xP25UcD02VSpaRjJaWXFscDM8Qko5KW5KXkpyazZaQSh+PmVuZHN0cmVhbQplbmRvYmoKeHJlZgowIDEyCjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDA2MSAwMDAwMCBuIAowMDAwMDAwMTEyIDAwMDAwIG4gCjAwMDAwMDAyMTkgMDAwMDAgbiAKMDAwMDAwMDMzMSAwMDAwMCBuIAowMDAwMDAwNDQ2IDAwMDAwIG4gCjAwMDAwMDA2NDAgMDAwMDAgbiAKMDAwMDAwMDgzNCAwMDAwMCBuIAowMDAwMDAwOTAyIDAwMDAwIG4gCjAwMDAwMDEyMTAgMDAwMDAgbiAKMDAwMDAwMTI3NSAwMDAwMCBuIAowMDAwMDA0MTU4IDAwMDAwIG4gCnRyYWlsZXIKPDwKL0lEIApbPDBjZWQyM2M5MzE5Y2NkNWQ3YmU5MWViM2NhYjA1OWI5PjwwY2VkMjNjOTMxOWNjZDVkN2JlOTFlYjNjYWIwNTliOT5dCiUgUmVwb3J0TGFiIGdlbmVyYXRlZCBQREYgZG9jdW1lbnQgLS0gZGlnZXN0IChvcGVuc291cmNlKQoKL0luZm8gOCAwIFIKL1Jvb3QgNyAwIFIKL1NpemUgMTIKPj4Kc3RhcnR4cmVmCjU3MzYKJSVFT0YK"}, "participant": {"name": "Participant_Guide.pdf", "b64": "JVBERi0xLjQKJZOMi54gUmVwb3J0TGFiIEdlbmVyYXRlZCBQREYgZG9jdW1lbnQgKG9wZW5zb3VyY2UpCjEgMCBvYmoKPDwKL0YxIDIgMCBSIC9GMiAzIDAgUiAvRjMgNCAwIFIKPj4KZW5kb2JqCjIgMCBvYmoKPDwKL0Jhc2VGb250IC9IZWx2ZXRpY2EgL0VuY29kaW5nIC9XaW5BbnNpRW5jb2RpbmcgL05hbWUgL0YxIC9TdWJ0eXBlIC9UeXBlMSAvVHlwZSAvRm9udAo+PgplbmRvYmoKMyAwIG9iago8PAovQmFzZUZvbnQgL0hlbHZldGljYS1Cb2xkIC9FbmNvZGluZyAvV2luQW5zaUVuY29kaW5nIC9OYW1lIC9GMiAvU3VidHlwZSAvVHlwZTEgL1R5cGUgL0ZvbnQKPj4KZW5kb2JqCjQgMCBvYmoKPDwKL0Jhc2VGb250IC9IZWx2ZXRpY2EtT2JsaXF1ZSAvRW5jb2RpbmcgL1dpbkFuc2lFbmNvZGluZyAvTmFtZSAvRjMgL1N1YnR5cGUgL1R5cGUxIC9UeXBlIC9Gb250Cj4+CmVuZG9iago1IDAgb2JqCjw8Ci9Db250ZW50cyA5IDAgUiAvTWVkaWFCb3ggWyAwIDAgNjEyIDc5MiBdIC9QYXJlbnQgOCAwIFIgL1Jlc291cmNlcyA8PAovRm9udCAxIDAgUiAvUHJvY1NldCBbIC9QREYgL1RleHQgL0ltYWdlQiAvSW1hZ2VDIC9JbWFnZUkgXQo+PiAvUm90YXRlIDAgL1RyYW5zIDw8Cgo+PiAKICAvVHlwZSAvUGFnZQo+PgplbmRvYmoKNiAwIG9iago8PAovUGFnZU1vZGUgL1VzZU5vbmUgL1BhZ2VzIDggMCBSIC9UeXBlIC9DYXRhbG9nCj4+CmVuZG9iago3IDAgb2JqCjw8Ci9BdXRob3IgKE5heWEgUm9xdWVtb3JlKSAvQ3JlYXRpb25EYXRlIChEOjIwMjYwOTMwMDQyNTU4KzAwJzAwJykgL0NyZWF0b3IgKFwodW5zcGVjaWZpZWRcKSkgL0tleXdvcmRzICgpIC9Nb2REYXRlIChEOjIwMjYwOTMwMDQyNTU4KzAwJzAwJykgL1Byb2R1Y2VyIChSZXBvcnRMYWIgUERGIExpYnJhcnkgLSBcKG9wZW5zb3VyY2VcKSkgCiAgL1N1YmplY3QgKFwodW5zcGVjaWZpZWRcKSkgL1RpdGxlIChQYXJ0aWNpcGFudCBHdWlkZTogR2FzIExlYWsgUmVjb2duaXRpb24gYW5kIFJlc3BvbnNlKSAvVHJhcHBlZCAvRmFsc2UKPj4KZW5kb2JqCjggMCBvYmoKPDwKL0NvdW50IDEgL0tpZHMgWyA1IDAgUiBdIC9UeXBlIC9QYWdlcwo+PgplbmRvYmoKOSAwIG9iago8PAovRmlsdGVyIFsgL0FTQ0lJODVEZWNvZGUgL0ZsYXRlRGVjb2RlIF0gL0xlbmd0aCAyMjc2Cj4+CnN0cmVhbQpHYXUwRT8kaSYhKHFuOCFHamgqZzhLJE8yWVsrQmVRQDNsQmYmZ1MyMSdoKG4rO11tR0lcLU41Kj04cWotVEgsMjIsPTtYK2hhTjIqMyJtRXIlUmssWURIVEFkISo1WUBLRztMYCQtay9SbEMhMmMsSFJnTnMuKDAxQGJMNC0lOEhtUixQbD9nO1FMNU8oVSM8Iko8cTpDJ0JtWz8/aG0xVjEoZz0nTSJRNU9ONiEpTTBAcVhiYC5bPWlFLWFYR2otYWIuLkY+Ql83MlwjWkdHI3IrMy9WMWUpYXJMMik6TEtoQUVpbEEwSltcUnVfW19tSTVpJEtSJ2lvLTFvV0BrNmgqc2hLJSlRXVY5MkVsJkZXMW9OcFRuZDc+S142YkZsO0RuVCYuKC5BMDhySkR1JjFLOkI/YllqUF1aPEQybEJcPStoWztVaDU2WFhEaE87SVg3KjUpYnBlZjByPUJOWW89OjkpbTBXZmk1clk/LiFecTFkYnMlQiZzYzteWj4xJEJKTTlaQFhnNVdiTCMuLyInPUtBMG9KKWhpbjIvImVybyg+bDZqSDEyciJKPVglblVHTGBddSdIT0tQOSJgZVFZJWUpXWo1I15WQk5IMU0/NFs+MmVpTE1WYDpoNE1ORVkhck9cZGVAaSskKiokND8vQjNrWTFGQCwiOV5ELEJMXUhpQiw9ZkxHKXElaj1zWlwoJlxGNiMxMiNacigqakFvLFE4bF9WW0AvI2VMdV5XPEUhZyU7Jkg3InU2UVRhO2RgQiZSZF5WcClkNV9rQG1PXltrcD8mKzRdNFApWD5eSyoucmMvJUJTTzc3Lm91QlhBLi5YZCVDV05tcSpLQShoRWJpbjxaKUcxY2RkO01yQUI/NlcqbEtEQkROWjFQSnUlQ1FeMC9zQixVcUJiaV5FcCRRX2Jzb0gnMEFMWDc2UzU8UWRYJTQ2U2tKZjZCN0hdK0ZEL1AwcFE/ZWk0YVY1IU1KKz83OlBkN2pYJ245VkNiNFNYOURxRGAxMEVuPj09Y3VYV3FHU3JgbmFgMjZZWi5kJkIvPipWLD5fTmFLdHEmQyNzKHQ7aVZvaiRTJGZBXElsZiZwJFVnZ1JLbCw2amhYYHUyJERcYjNjL1A6V082UmdMSFcpOCg5UWtqaWJJZXBdVVBcJTI3Nj86RUcuZFghMXJuNSVEWmVgaHVobTRDWmdzRDx1I1xWXmdwXGNxW0xUSiZAZjAjOl0lXlRLNiptdEU4ckwpQVphciUyNy5MZylTb1duKHRXIVgvKG9fL1dlTCZmO0Y7dCdJLy9sP15aNGUnJFNPcFpWZFA2OU4uVk80T1hBQlFwWF41Rm88bW1wXmVhP0QpKWk6WUU2bklAT21lbj5JMzVdUSk9KWs1JjN0aGgiOyIlL0FldSFGbEFoSkBrX1IoczNjSTRvM3ErP1wtYmdVKyhZXVBAKj9fcDJWUiZYVnMmY3BPJ1lyTClIM25vKiZEZm90Qj5aJS82ZlNTQiRBOUhQOzAuL0RkSyl1amUwQDY5X05LKiw9PUVHUWk0ZkVUJk1LN21qS0I4NVdiJ1kxJ2cyPnBbKitPSEBfWCtSMlVmK0UqRy9bM1p1WWRnTF9UN0EpWS1GVi1aZm50KiI8ZG9mbFVZcDh1QTVOUj0yMSUpUnBFcVt0Nzk6MSJAJjY0aVRab1o9Qk4uR0BtcUwlJHQ/cDR0TVgmZl1XJiliV2ZoOjMnNDhqRXVXayJfcF1laWFWZW41TDZyZUQwRCVaSlNgRWVHPGpZb3BYY29HMSxpPDYjRWczSDpVLEdPKzowSj1MPGxSQV1TM29eQllfO0VyZUBIZ25XS1hBZEpAOEVVRCtLdCtNJjRsOzonLD5LOm9uRWNZKFgob01nQC1GXz06SzhWYylFSjlGcjI7W200PkgjW1RtdTQjcFNzYk0mZnVTND9OSkNpZiJWWiJkU145O2dfLmNYSj9wbDwjJlBmXW50VWhWbiFMbiguPFdHbE1KLlNiRTlrPEZHLydMQTczVVksR1BqRnFoQ0kvNypyLypmS20kTkIzJHBbQmRkPXAoTV4lZW1sUEo2NVphNDxfPjo0PTtGQV9xVUpgKU5iO2UwYzwiVzoyOS1JXkEqaD89SWFhMzsmPixtaV03QFFJT0IiSClLZzNmLFY5JUxyWERyOlBUSkFYQFE6JCJWMDBEMG84Vj8wNGxkKjVfKmMmc2ApQFM2WUInRitnJk8yR1RrRCYpOypPZHNDVDEtQGg6I0A1QzNYMm1oQjZtQ2QvXyNjNGtaby8+XklPXlA+ZjpWbFgyaDZERVxoT1BdOVIlbzk4dSpdPSIuWzciYVc9Sm1tYDssTj9VQ1NcJ005L21bckhNSGoxPjU1SnRhMG9sVitqQjlacUZEO047MkteU0tUbUhHWlQlMSc3JjRrOzpPQU9tX1VhbUwuV3JVNVc4NFtJSzFMKCghMSclTnU7P0FdT3NCZDJgdWpoTGJKa18hRyZNa19NamZzKlc0RUdwKihETVFKPixvOTNhWDhIcVwpdUc2Wj4rMGlsY1c7T0ZjTCVkbUU5dCJmbHRNKyxlZGdraV11a0EsWCRwI2BRZztrVmUndERxRSMtQUhIJSRNYFFDYWlFS0ByN1hsZCppNFdSb08sbnRVM1gnQkY3VywtNFJ1Z2o6IyVJQS49bj86InJbZ3RwYzNTXVI+ZEhpM1NuMipKVm4mSC8jVUdtZGpnZ0BRKEs0YHJuczo2NCdVVC87S3QpIiFEPShuaWVtU3JTZ14lRi8obW1tVUBbJkAnbktHIXNOOmtabDBQbWkmNU5DYSZmTyFnbltpOUhoU1daaUQ0PiYjZkpSIjBoYzZrYkZTckooMT5USUdiTmdMJD9eLWBwT2wwJS8iYHU9LHRDNHJYJkIvckoxPT9UNWxASk1DP0JYSVlWazFUJDlQM1RCXy9YUSNlbUhZNj1ATFRmK1s5cGBBL21VYmNSdWZXaVFTczUtZCprTjUmWkZRK2EwRilWcGJdKGNmVVUzbDt+PmVuZHN0cmVhbQplbmRvYmoKeHJlZgowIDEwCjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDA2MSAwMDAwMCBuIAowMDAwMDAwMTEyIDAwMDAwIG4gCjAwMDAwMDAyMTkgMDAwMDAgbiAKMDAwMDAwMDMzMSAwMDAwMCBuIAowMDAwMDAwNDQ2IDAwMDAwIG4gCjAwMDAwMDA2MzkgMDAwMDAgbiAKMDAwMDAwMDcwNyAwMDAwMCBuIAowMDAwMDAxMDI3IDAwMDAwIG4gCjAwMDAwMDEwODYgMDAwMDAgbiAKdHJhaWxlcgo8PAovSUQgCls8NzZjZmFjMGYwNmM5ZTgxYzUxYTVhNjQ0MGFkNjg0MDI+PDc2Y2ZhYzBmMDZjOWU4MWM1MWE1YTY0NDBhZDY4NDAyPl0KJSBSZXBvcnRMYWIgZ2VuZXJhdGVkIFBERiBkb2N1bWVudCAtLSBkaWdlc3QgKG9wZW5zb3VyY2UpCgovSW5mbyA3IDAgUgovUm9vdCA2IDAgUgovU2l6ZSAxMAo+PgpzdGFydHhyZWYKMzQ1MwolJUVPRgo="}}</script>
+
+<script>
+(function(){
+"use strict";
+const $=s=>document.querySelector(s);
+const main=$("#main"), nextBtn=$("#nextBtn"), backBtn=$("#backBtn");
+const S={idx:0, mistakes:0, cc:true, vo:false, seenSenses:new Set(), found:new Set(), dec:{}, quizAttempts:0, qi:0, qAnswers:[], qLocked:false, cameFrom:null};
+
+/* ---------- Scene art ---------- */
+function person(x,y,opts={}){
+  const vest=opts.vest||"#E8741E", skin=opts.skin||"#8d5a3b", sc=opts.scale||1;
+  return `<g transform="translate(${x} ${y}) scale(${sc})">
+    <rect x="-9" y="36" width="7" height="26" rx="3" fill="#2c3a55"/><rect x="2" y="36" width="7" height="26" rx="3" fill="#2c3a55"/>
+    <rect x="-13" y="8" width="26" height="32" rx="6" fill="${vest}"/>
+    <rect x="-13" y="22" width="26" height="4" fill="#f4f4c8"/>
+    <circle cx="0" cy="0" r="9" fill="${skin}"/>
+    <path d="M-11 -2 a11 10 0 0 1 22 0 z" fill="#ffffff" stroke="#c9ced6"/>
+    <rect x="-13" y="-3" width="26" height="3" rx="1.5" fill="#ffffff" stroke="#c9ced6"/>
+  </g>`;
+}
+function flag(x,y){return `<g><line x1="${x}" y1="${y}" x2="${x}" y2="${y-22}" stroke="#555" stroke-width="1.5"/><path d="M${x} ${y-22} l14 5 l-14 5 z" fill="#FFD400" stroke="#b39500" stroke-width=".8"/></g>`}
+function scene(o={}){
+  const st=o.state||"dig";
+  const running = st==="dig";
+  let flags=""; for(let i=0;i<7;i++) flags+=flag(236+i*34, 292);
+  const exhaust = running ? `<circle class="exh" cx="133" cy="244" r="6" fill="#9aa1ab"/><circle class="exh" style="animation-delay:.8s" cx="133" cy="244" r="6" fill="#9aa1ab"/>` : "";
+  const odor = o.odor ? `<g class="odor" fill="none" stroke="#7a8a3a" stroke-width="3" stroke-linecap="round">
+      <path d="M378 292 q8 -10 0 -20 q-8 -10 0 -20"/><path d="M400 288 q8 -10 0 -20 q-8 -10 0 -20" style="animation-delay:.6s"/><path d="M422 292 q8 -10 0 -20 q-8 -10 0 -20" style="animation-delay:1.2s"/></g>` : "";
+  const hiss = o.hiss ? `<g class="odor" fill="none" stroke="#1F3864" stroke-width="2.5" stroke-linecap="round"><path d="M448 306 q10 -8 0 -16"/><path d="M458 312 q18 -14 0 -28"/></g>` : "";
+  const truck = `<g class="${o.intro?'truck-in':''}"><g transform="translate(560 352)">
+      <rect x="0" y="0" width="150" height="48" rx="4" fill="#ffffff" stroke="#9aa4ad"/>
+      <rect x="0" y="22" width="150" height="7" fill="#E8741E"/>
+      <path d="M150 12 h34 l18 18 v18 h-52 z" fill="#ffffff" stroke="#9aa4ad"/>
+      <path d="M156 16 h24 l12 12 h-36 z" fill="#9ec5de"/>
+      <circle cx="34" cy="50" r="11" fill="#2b2f36"/><circle cx="170" cy="50" r="11" fill="#2b2f36"/>
+      <circle cx="34" cy="50" r="4" fill="#9aa4ad"/><circle cx="170" cy="50" r="4" fill="#9aa4ad"/>
+    </g></g>`;
+  // crew positions
+  let crew;
+  if(st==="away"){ crew = person(50,352,{scale:.8}) + person(80,356,{vest:"#f2c200",skin:"#c68a5c",scale:.8}) + person(108,352,{vest:"#E8741E",skin:"#e0b48a",scale:.8}); }
+  else if(st==="stopped"){ crew = person(362,236) + person(418,236,{vest:"#f2c200",skin:"#c68a5c"}); }
+  else { crew = person(330,236); }
+  const neighbor = o.neighbor ? `<g>${person(610,250,{vest:"#5b7fb5",skin:"#e0b48a",scale:.85})}<text x="626" y="238" font-size="13" font-family="Open Sans, sans-serif" fill="#1d2433">Hi!</text></g>` : "";
+  // Hotspot art (signs + distractors)
+  let hs="";
+  if(o.hotspot){
+    hs = `
+    <g class="hs" data-id="dust" data-sign="1" tabindex="0" role="button" aria-label="Area A: ground next to the trench">
+      <g fill="#8a6a4b"><circle class="dust" cx="244" cy="352" r="3.5"/><circle class="dust" style="animation-delay:.3s" cx="254" cy="354" r="3"/><circle class="dust" style="animation-delay:.7s" cx="238" cy="355" r="2.5"/><circle class="dust" style="animation-delay:1s" cx="260" cy="352" r="3"/><circle class="dust" style="animation-delay:1.2s" cx="248" cy="350" r="2.5"/></g>
+      <ellipse cx="250" cy="357" rx="18" ry="4" fill="#6f5238"/>
+      <circle class="ring" cx="250" cy="342" r="30"/><g class="check"><circle cx="274" cy="318" r="11" fill="#1B7F4B"/><path d="M268 318 l4 4 l8 -8" stroke="#fff" stroke-width="3" fill="none"/></g>
+    </g>
+    <g class="hs" data-id="bubbles" data-sign="1" tabindex="0" role="button" aria-label="Area B: puddle by the curb">
+      <ellipse cx="120" cy="392" rx="46" ry="11" fill="#6fa8d6"/>
+      <g fill="#dff0ff" stroke="#6fa8d6"><circle class="bub" cx="108" cy="390" r="3"/><circle class="bub" style="animation-delay:.6s" cx="124" cy="392" r="2.5"/><circle class="bub" style="animation-delay:1.1s" cx="134" cy="389" r="3"/></g>
+      <circle class="ring" cx="120" cy="386" r="40"/><g class="check"><circle cx="156" cy="360" r="11" fill="#1B7F4B"/><path d="M150 360 l4 4 l8 -8" stroke="#fff" stroke-width="3" fill="none"/></g>
+    </g>
+    <g class="hs" data-id="grass" data-sign="1" tabindex="0" role="button" aria-label="Area C: patch of lawn near the house">
+      <ellipse cx="540" cy="306" rx="54" ry="14" fill="#b39b5a"/>
+      <g stroke="#8c7440" stroke-width="2"><path d="M505 306 l-3 -8"/><path d="M520 304 l2 -9"/><path d="M548 307 l-2 -8"/><path d="M570 305 l3 -8"/></g>
+      <circle class="ring" cx="540" cy="303" r="44"/><g class="check"><circle cx="584" cy="280" r="11" fill="#1B7F4B"/><path d="M578 280 l4 4 l8 -8" stroke="#fff" stroke-width="3" fill="none"/></g>
+    </g>
+    <g class="hs" data-id="hiss" data-sign="1" tabindex="0" role="button" aria-label="Area D: gas meter on the house wall">
+      <g fill="none" stroke="#1F3864" stroke-width="2" opacity=".55"><path d="M716 206 q6 -6 0 -12"/><path d="M722 210 q12 -10 0 -20"/></g>
+      <circle class="ring" cx="700" cy="214" r="28"/><g class="check"><circle cx="726" cy="190" r="11" fill="#1B7F4B"/><path d="M720 190 l4 4 l8 -8" stroke="#fff" stroke-width="3" fill="none"/></g>
+    </g>
+    <g class="hs" data-id="puddle" data-sign="0" tabindex="0" role="button" aria-label="Area E: puddle in the yard">
+      <ellipse cx="430" cy="372" rx="30" ry="8" fill="#6fa8d6"/><circle class="ring" cx="430" cy="370" r="30"/>
+    </g>
+    <g class="hs" data-id="bag" data-sign="0" tabindex="0" role="button" aria-label="Area F: bag by the house">
+      <path d="M752 318 q-14 -2 -12 -18 q2 -12 12 -14 q10 2 12 14 q2 16 -12 18z" fill="#2f4a36"/><path d="M750 286 l2 -8 l4 8" stroke="#2f4a36" stroke-width="3" fill="none"/>
+      <circle class="ring" cx="752" cy="302" r="26"/>
+    </g>`;
+  }
+  return `<svg viewBox="0 0 800 450" role="img" aria-label="${o.label||'A residential job site. A crew is digging a trench in the front yard for a new gas service line.'}">
+    <defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bcd8ee"/><stop offset="1" stop-color="#e6f0f7"/></linearGradient></defs>
+    <rect width="800" height="262" fill="url(#sky)"/>
+    <circle cx="90" cy="70" r="30" fill="#f6d58e"/>
+    <rect y="255" width="800" height="160" fill="#7fb069"/>
+    <rect y="410" width="800" height="40" fill="#5b6470"/>
+    <g stroke="#e8e8e8" stroke-width="3" stroke-dasharray="26 22"><line x1="0" y1="431" x2="800" y2="431"/></g>
+    <rect x="0" y="404" width="800" height="7" fill="#c9ced6"/>
+    <polygon points="455,122 590,52 725,122" fill="#6b7785"/>
+    <rect x="470" y="120" width="240" height="140" fill="#ece6da"/>
+    <rect x="560" y="182" width="40" height="78" fill="#6b4f3a"/>
+    <rect x="488" y="150" width="52" height="40" fill="#9ec5de" stroke="#fff" stroke-width="3"/>
+    <rect x="626" y="150" width="52" height="40" fill="#9ec5de" stroke="#fff" stroke-width="3"/>
+    <rect x="690" y="200" width="20" height="28" rx="3" fill="#9aa4ad"/><circle cx="700" cy="211" r="6" fill="#e9edf3"/>
+    <rect x="697" y="228" width="6" height="32" fill="#d8b600"/>
+    <path d="M255 300 h190 v26 h-190 z" fill="#4a3524"/>
+    <path d="M445 300 l32 -26 l40 26 z" fill="#8a6a4b"/>
+    ${flags}
+    <g>
+      <rect x="112" y="298" width="112" height="18" rx="9" fill="#2f3237"/>
+      <rect x="122" y="262" width="92" height="40" rx="4" fill="#f2b705"/>
+      <rect x="170" y="236" width="42" height="30" rx="3" fill="#f2b705"/><rect x="176" y="241" width="30" height="18" fill="#9ec5de"/>
+      <rect x="130" y="248" width="6" height="16" fill="#555"/>
+      ${exhaust}
+      <g class="${running?'arm':''}">
+        <path d="M205 255 L262 222 L290 296" fill="none" stroke="#d99a00" stroke-width="9" stroke-linejoin="round"/>
+        <path d="M282 292 l18 4 l-4 16 l-18 -6 z" fill="#555"/>
+      </g>
+    </g>
+    ${hs}
+    ${odor}${hiss}
+    ${crew}${neighbor}
+    ${truck}
+  </svg>`;
+}
+
+/* ---------- Icons ---------- */
+const ICON={
+ smell:`<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 6 c-4 10 -8 16 -8 24 a8 8 0 0 0 16 0 c0 -8 -4 -14 -8 -24z" fill="#1F3864"/><path d="M10 16 q4 -4 0 -8 M38 16 q-4 -4 0 -8" stroke="#E8741E" stroke-width="3" fill="none" stroke-linecap="round"/></svg>`,
+ look:`<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M4 24 q20 -20 40 0 q-20 20 -40 0z" fill="#1F3864"/><circle cx="24" cy="24" r="8" fill="#fff"/><circle cx="24" cy="24" r="4" fill="#E8741E"/></svg>`,
+ listen:`<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 18 h8 l10 -8 v28 l-10 -8 h-8z" fill="#1F3864"/><path d="M32 17 q5 7 0 14 M37 12 q10 12 0 24" stroke="#E8741E" stroke-width="3" fill="none" stroke-linecap="round"/></svg>`
+};
+
+/* ---------- Narration ---------- */
+function speak(t){ if(!("speechSynthesis" in window)) return; speechSynthesis.cancel(); if(S.vo && t){ const u=new SpeechSynthesisUtterance(t); u.rate=1; speechSynthesis.speak(u);} }
+function caption(t){ return `<div class="caption" ${S.cc?"":"hidden"} aria-live="off">${t}</div>`; }
+let hissCtx;
+function playHiss(){
+  try{
+    hissCtx = hissCtx || new (window.AudioContext||window.webkitAudioContext)();
+    const n=hissCtx.sampleRate*1.2, buf=hissCtx.createBuffer(1,n,hissCtx.sampleRate), d=buf.getChannelData(0);
+    for(let i=0;i<n;i++) d[i]=(Math.random()*2-1)*(1-i/n);
+    const src=hissCtx.createBufferSource(); src.buffer=buf;
+    const f=hissCtx.createBiquadFilter(); f.type="highpass"; f.frequency.value=3500;
+    const g=hissCtx.createGain(); g.gain.value=.18;
+    src.connect(f); f.connect(g); g.connect(hissCtx.destination); src.start();
+  }catch(e){}
+}
+
+/* ---------- Content ---------- */
+const DECISIONS=[
+ {title:"Decision 1: Your first move", state:"dig", odor:true, hiss:true,
+  prompt:"You smell gas at the trench, and now you hear a faint hiss. The excavator is still running. What do you do first?",
+  label:"The excavator is running beside the trench. Odor lines rise from the trench and a hiss comes from its far end.",
+  choices:[
+   {t:"Walk along the trench to find where the hiss is coming from.", ok:false, fb:"Never look for the source. You'd be standing in the gas, and one spark could ignite it."},
+   {t:"Signal the operator to stop, shut down the excavator if it's safe to do so, and leave it.", ok:true, fb:"Stop work and remove ignition sources first. Leave the equipment where it is."},
+   {t:"Call dispatch on your cell phone right there.", ok:false, fb:"Phones can create a spark. Make calls only after you're a safe distance away."}]},
+ {title:"Decision 2: Getting clear", state:"stopped", odor:true, neighbor:true,
+  prompt:"The equipment is off. Your crew needs to get clear, and a neighbor is waving from her porch. How do you leave?",
+  label:"The excavator is off. Two crew members stand near the trench. A neighbor waves from the porch and the crew truck is parked at the curb.",
+  choices:[
+   {t:"Jump in the truck and drive it out of the area.", ok:false, fb:"Starting a vehicle near a leak is an ignition source. Leave it and go on foot."},
+   {t:"Leave on foot, upwind if you can, and warn the neighbor to leave too.", ok:true, fb:"Get everyone a safe distance away, on foot, and warn people nearby."},
+   {t:"Stay at the trench edge to keep the public away.", ok:false, fb:"Keeping people back matters, but not from inside the danger zone. Move away first."}]},
+ {title:"Decision 3: Making the call", state:"away",
+  prompt:"You're a safe distance away at the end of the street. Who do you call?",
+  label:"The crew stands together at the far end of the street, well away from the trench.",
+  choices:[
+   {t:"Your supervisor, to ask what to do next.", ok:false, fb:"Your supervisor needs to know, but emergency calls come first."},
+   {t:"911, then the gas emergency line, with the exact address and cross street.", ok:true, fb:"Emergency calls first, with an exact location. Then notify your supervisor."},
+   {t:"No one yet. The gas company probably already knows.", ok:false, fb:"Never assume someone else reported it. Make the call."}]}
+];
+const STEPS=[
+ ["Stop work and remove ignition sources.","Signal the operator to stop. Shut down equipment only if it's safe to do so."],
+ ["Leave the area on foot and warn others.","Don't start vehicles. Tell crew members, neighbors, and the public to leave."],
+ ["Move a safe distance away, upwind if you can.","Go to your crew's safe meeting point."],
+ ["Call 911, then the gas emergency line.","Call only from a safe distance. Give the exact address and cross street."],
+ ["Keep everyone away until responders say it's safe.","Then notify your supervisor."]
+];
+const QUIZ=[
+ {type:"mc", q:"Which smell is added to natural gas so leaks can be detected?", o:["Gasoline","Rotten eggs","Burning plastic","No smell is added"], a:1, ex:"Utilities add an odorant, mercaptan, that smells like rotten eggs."},
+ {type:"mr", q:"Select all the signs of a possible gas leak.", o:["Dirt blowing from the ground","Bubbles rising in standing water","A hissing sound near a gas line","Dead grass in an otherwise green lawn","A puddle with still water"], a:[0,1,2,3], ex:"Blowing dirt, bubbling water, hissing, and dead grass are all signs. Still water on its own is not."},
+ {type:"mc", q:"You smell gas at a job site. What is your first step?", o:["Find the source of the leak","Call dispatch from where you're standing","Stop work and remove ignition sources","Keep working until the smell gets stronger"], a:2, ex:"Stop work and remove ignition sources before anything else."},
+ {type:"seq", q:"Put the response steps in order. Use the arrows to move each step.", o:STEPS.map(s=>s[0]), ex:"Stop, leave and warn, get a safe distance away, call, then keep everyone back."},
+ {type:"mc", q:"You don't smell gas, but you hear a hiss near a gas meter. What should you do?", o:["Ignore it, since there's no odor","Tap the meter to check it","Treat it as a leak and follow the 5 steps"], a:2, ex:"Odor can fade or be masked. If you see or hear the signs, treat it as a leak."}
+];
+
+/* ---------- Screens ---------- */
+const SCREENS=[
+ {id:"welcome", nar:"Welcome to Natural Gas Leak Recognition and Response, part of the Field Operations Safety series. This short course prepares new field crew members to recognize the signs of a gas leak and take the right first actions to protect themselves, their crew, and the public. It takes about seven minutes. To complete it, finish every screen and score at least 80 percent on the knowledge check. Select Start course when you're ready.",
+  render(){ return `<div class="screen welcome">
+   <div class="wl">
+     <p class="series">Field Operations Safety Series &nbsp;|&nbsp; Module 1</p>
+     <h2 tabindex="-1" class="wtitle">Natural Gas Leak Recognition and Response</h2>
+     <p class="wlead">Welcome, crew member. This course prepares you to recognize the signs of a natural gas leak and take the right first actions to protect yourself, your crew, and the public.</p>
+     <dl class="facts"><div><dt>Time</dt><dd>About 7 minutes</dd></div><div><dt>Who it's for</dt><dd>Field crew members in their first 90 days, including contractors</dd></div><div><dt>To complete</dt><dd>View every screen and score 80% or higher on the 5-question knowledge check</dd></div></dl>
+   </div>
+   <div class="wr">
+     <h3>What you'll learn</h3>
+     <ul class="objs"><li>Spot the 3 signs of a possible leak</li><li>Avoid 4 common ignition sources</li><li>Follow the 5 response steps in order</li><li>Explain why smell alone isn't enough</li></ul>
+     <h3>How to use this course</h3>
+     <ul class="howto"><li><b>Next and Back</b> move between screens. Some screens unlock Next after you finish the activity.</li><li><b>Captions</b> show the narration as text. They're on by default.</li><li><b>Narration</b> reads each screen aloud. Turn up your volume.</li></ul>
+   </div>
+   <p class="fine wfoot">Version 1.0 &nbsp;|&nbsp; Aligned to OSHA emergency action planning and DOT/PHMSA operator qualification awareness. Portfolio sample; not an official procedure of any company.</p>
+   </div>`; }},
+ {id:"meet", nar:"Meet Dana. She's three weeks into her first job on a gas utility field crew. Today she's helping install a new service line, and you'll make her decisions. The choices are the same ones you could face on your next job.",
+  render(){ return `<div class="screen"><h2 tabindex="-1">Meet Dana</h2>
+   <div class="meet"><div class="avatar">${avatarSVG()}</div>
+   <div><p class="lead" style="color:var(--ink);font-size:20px">Dana is three weeks into her first job on a gas utility field crew. Today she's helping install a new service line in a residential front yard.</p>
+   <p class="lead">In this course, you'll make Dana's decisions. They're the same ones you could face on your next job.</p>
+   <dl class="facts"><div><dt>Role</dt><dd>Field crew member, first 90 days</dd></div><div><dt>Job today</dt><dd>New gas service line installation</dd></div><div><dt>Crew</dt><dd>Dana, an excavator operator, and a crew lead</dd></div></dl></div></div>
+   ${caption(this.nar)}</div>`; }},
+ {id:"intro", nar:"It's 7:40 in the morning. The locate flags are down, the 811 ticket is clear, and your crew is digging for a new service line. It's a routine job. Then you catch a smell, like rotten eggs. What you do in the next two minutes matters more than anything else you'll do today.",
+  render(){ return `<div class="screen"><h2 tabindex="-1">7:40 a.m. Locate ticket: clear.</h2>
+   <div class="stage">${scene({intro:true,odor:true})}<span class="tag">Today's job</span></div>${caption(this.nar)}</div>`; }},
+ {id:"senses", nar:"Natural gas has no color and no smell on its own. That's why an odorant is added, so you'll notice the rotten-egg smell. But use your eyes and ears too. Look for blowing dirt, bubbling water, or dead grass. Listen for hissing or roaring.",
+  gate(){ return S.seenSenses.size===3; },
+  render(){ const d=[["smell","Smell","A rotten-egg odor. Gas companies add an odorant called mercaptan so leaks can be detected."],["look","Look","Dirt or dust blowing from the ground, bubbles rising in standing water, dead or discolored grass in a green area."],["listen","Listen","A hissing or roaring sound near a gas line, meter, or trench."]];
+   return `<div class="screen"><h2 tabindex="-1">Use three senses, not one</h2><p class="lead">Select each sense to learn what to watch for.</p>
+   <div class="senses">${d.map(x=>`<button class="sense" data-k="${x[0]}" aria-expanded="${S.seenSenses.has(x[0])}">${ICON[x[0]]}<b>${x[1]}</b>${S.seenSenses.has(x[0])?`<p>${x[2]}</p><span class="seen">Viewed</span>`:`<span class="hint">Select to reveal</span>`}</button>`).join("")}</div>
+   ${caption(this.nar)}</div>`; },
+  bind(){ main.querySelectorAll(".sense").forEach(b=>b.onclick=()=>{S.seenSenses.add(b.dataset.k); rerender(`.sense[data-k="${b.dataset.k}"]`);}); }},
+ {id:"nose", nar:"Here's the catch. Your nose can fail you. The odorant can fade, other job site smells can cover it, and after a few minutes near a leak, your nose simply stops noticing. If you see or hear the signs, treat it as a leak, even if you don't smell anything.",
+  render(){ return `<div class="screen"><h2 tabindex="-1">Your nose can fail you</h2><p class="lead">You might not smell a leak when:</p>
+   <div class="callouts"><div class="callout"><b>The odor fades</b>Conditions in the pipe or soil can weaken the odorant.</div>
+   <div class="callout"><b>Other smells mask it</b>Exhaust, sewer, or fresh asphalt can cover it up.</div>
+   <div class="callout"><b>Your nose gets used to it</b>After a few minutes near a leak, you stop noticing the smell.</div></div>
+   <div class="rule">If you see or hear the signs, treat it as a leak.</div>${caption(this.nar)}</div>`; }},
+ {id:"hotspot", nar:"Let's test your eyes and ears. This job site has four signs of a possible leak. Tap each one you find.",
+  gate(){ return S.found.size>=4; },
+  render(){ return `<div class="screen"><h2 tabindex="-1">Spot the signs</h2>
+   <div class="hs-bar"><span class="pill" id="hsCount">Found: ${S.found.size} of 4</span><button class="btn ghost" id="showMe" hidden>Show me</button><span class="tip" id="hsTip" aria-live="polite">Tap or press Enter on each area you think shows a sign.</span></div>
+   <div class="stage">${scene({hotspot:true,state:"stopped",label:"A job site with six areas you can select, labeled A through F."})}</div>${caption(this.nar)}</div>`; },
+  bind(){
+   const mark=g=>{g.classList.add("found");};
+   main.querySelectorAll(".hs").forEach(g=>{ if(S.found.has(g.dataset.id)) mark(g);
+     const act=()=>{ const id=g.dataset.id, tip=$("#hsTip");
+       if(g.dataset.sign==="1"){ if(id==="hiss") playHiss(); if(!S.found.has(id)){S.found.add(id); mark(g);}
+         const msg={dust:"Found it: dirt blowing from the ground.",bubbles:"Found it: bubbles rising in the puddle.",grass:"Found it: dead grass in a green lawn.",hiss:"Found it: a hiss at the gas meter."}[id];
+         tip.textContent=msg; $("#hsCount").textContent=`Found: ${S.found.size} of 4`; if(S.found.size>=4){tip.textContent="All 4 signs found. Select Next.";} updateNav(); }
+       else { tip.textContent = id==="bag" ? "No sign of gas here. That's just a trash bag." : "No sign of gas here. This puddle is still, with no bubbles."; } };
+     g.addEventListener("click",act); g.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();act();}});
+   });
+   clearTimeout(S.hsT); if(S.found.size<4) S.hsT=setTimeout(()=>{const b=$("#showMe"); if(b) b.hidden=false;},60000);
+   const sm=$("#showMe"); if(sm) sm.onclick=()=>{["dust","bubbles","grass","hiss"].forEach(i=>S.found.add(i)); rerender();};
+  }},
+ {id:"steps", nar:"Five steps. Stop work and remove ignition sources. Leave on foot and warn others. Get a safe distance away, upwind if you can. From there, call 911 and the gas emergency line. And keep everyone back until responders tell you it's safe. Now let's put that to work.",
+  render(){ return `<div class="screen"><h2 tabindex="-1">The 5 response steps</h2>
+   <ol class="steps">${STEPS.map((s,i)=>`<li><span class="num">${i+1}</span><div><b>${s[0]}</b><span>${s[1]}</span></div></li>`).join("")}</ol>${caption(this.nar)}</div>`; },
+  bind(){ const lis=main.querySelectorAll(".steps li"); lis.forEach((li,i)=>setTimeout(()=>li.classList.add("show"),250+i*650)); }},
+ ...DECISIONS.map((d,di)=>({id:"d"+di, nar:d.prompt, decision:true,
+  gate(){ return !!(S.dec[di] && S.dec[di].done); },
+  render(){ const st=S.dec[di]||{tried:[],done:false};
+   const fb = st.last!=null ? (d.choices[st.last].ok
+      ? `<div class="feedback good" role="status"><p><strong>That's right.</strong>${d.choices[st.last].fb}</p></div>`
+      : `<div class="feedback bad" role="alert"><p><strong>Not quite.</strong>${d.choices[st.last].fb}</p><button class="btn ghost" id="tryAgain">Try again</button></div>`) : "";
+   const lock = st.done || (st.last!=null && !d.choices[st.last].ok);
+   return `<div class="screen"><h2 tabindex="-1">${d.title}</h2><div class="dgrid">
+     <div><div class="stage">${scene({state:d.state,odor:d.odor,hiss:d.hiss,neighbor:d.neighbor,label:d.label})}</div></div>
+     <div class="choices"><p style="margin:0;font-weight:700">${d.prompt}</p>
+     ${d.choices.map((c,ci)=>`<button class="choice ${st.tried.includes(ci)&&!c.ok?'tried':''} ${st.done&&c.ok?'right':''}" data-c="${ci}" ${lock?'disabled':''}><span class="k">${"ABC"[ci]}</span><span>${c.t}</span></button>`).join("")}
+     ${fb}</div></div></div>`; },
+  bind(){ const st=S.dec[di]=S.dec[di]||{tried:[],done:false};
+   main.querySelectorAll(".choice").forEach(b=>b.onclick=()=>{ const ci=+b.dataset.c, c=d.choices[ci]; st.last=ci;
+     if(!st.tried.includes(ci)) st.tried.push(ci);
+     if(c.ok){ st.done=true; } else { S.mistakes++; setMeter(); }
+     rerender(c.ok?".feedback":"#tryAgain"); });
+   const t=$("#tryAgain"); if(t) t.onclick=()=>{ st.last=null; rerender(".choice:not(.tried)"); };
+  }})),
+ {id:"summary", nar:"Responders are on the way, and everyone is safe because you stopped, got clear, and called from a safe place. Next, a quick game to sharpen your eye for sparks.",
+  render(){ const m=S.mistakes; const perfect=m===0;
+   const msg = perfect? "Perfect run. You earned the Safe Crew badge." : (m<=2? "Good recovery. Review the steps you missed." : "Review the five steps before the quiz.");
+   return `<div class="screen"><h2 tabindex="-1">Everyone is safe</h2>
+   <div class="badge">${perfect?badgeSVG(true):badgeSVG(false)}<div><h3>${msg}</h3><p>Wrong choices: ${m}. Crew Safety Meter: ${Math.max(0,100-m*20)}%.</p>${perfect?"":`<p style="margin-top:6px"><button class="btn ghost" id="replay">Replay the scenario to earn the badge</button></p>`}</div></div>
+   <ol class="steps">${STEPS.map((s,i)=>`<li class="show"><span class="num">${i+1}</span><div><b>${s[0]}</b></div></li>`).join("")}</ol>${caption(this.nar)}</div>`; },
+  bind(){ const r=$("#replay"); if(r) r.onclick=()=>{ S.mistakes=0; S.dec={}; setMeter(); go(SCREENS.findIndex(s=>s.id==="d0")); }; }},
+ {id:"game", nar:"Time for a quick game. Items will appear one at a time. Decide if each one is an ignition risk near a leak, or a safe action. Get as many right as you can before time runs out.",
+  gate(){ return S.game.phase==="done" || !!S.game.skipped; },
+  render(){ const g=S.game;
+   if(g.phase==="ready"){ return `<div class="screen"><h2 tabindex="-1">Game: Spark or Safe?</h2>
+     <div class="gready"><div>
+       <p class="lead" style="color:var(--ink);font-size:20px">Near a leak, one spark can start a fire. Sort each item as fast as you can.</p>
+       <ul class="howto" style="font-size:17px"><li><b>Ignition risk</b> if it could create a spark or flame near a leak.</li><li><b>Safe action</b> if it keeps you and others safe.</li><li>Earn 10 points per correct answer, plus a bonus for every 3 in a row.</li><li>Keyboard: Left arrow for Ignition risk, Right arrow for Safe action.</li></ul>
+       <label class="timed"><input type="checkbox" id="timedBox" ${g.timed?"checked":""}> 45-second timer (turn off to play at your own pace)</label>
+       <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:14px"><button class="btn primary" id="playBtn">Play</button><button class="btn ghost" id="skipGame">Skip the game</button></div>
+       ${g.best?`<p class="fine" style="margin-top:10px">Your best score: ${g.best}</p>`:""}
+     </div><div class="gart" aria-hidden="true">${sparkSVG()}</div></div></div>`; }
+   if(g.phase==="play"){ const it=GAME[g.order[g.i]];
+     return `<div class="screen"><h2 tabindex="-1">Spark or Safe?</h2>
+     <div class="ghud"><span class="pill">Score: <span id="gScore">${g.score}</span></span><span class="gstreak" id="gStreak">${g.streak>=2?`Streak: ${g.streak}`:""}</span><span class="gtime" id="gTime">${g.timed?`${g.timeLeft}s`:"Untimed"}</span><span class="fine">Item ${g.i+1} of ${GAME.length}</span></div>
+     ${g.timed?`<div class="gbar"><i id="gBar" style="width:${g.timeLeft/45*100}%"></i></div>`:""}
+     <div class="gcard" id="gCard" aria-live="polite"><p>${it.t}</p></div>
+     <div class="gbtns"><button class="gbtn risk" id="gRisk">${boltSVG()}<span>Ignition risk</span></button><button class="gbtn safe" id="gSafe">${checkSVG()}<span>Safe action</span></button></div></div>`; }
+   const stars = g.correct>=11?3:(g.correct>=8?2:(g.correct>=5?1:0));
+   const title = stars===3?"Spark Spotter badge earned":(stars===2?"Solid work":(stars===1?"Getting there":"Try another round"));
+   return `<div class="screen"><h2 tabindex="-1">Game over: ${title}</h2>
+     <div class="badge"><div class="stars" aria-label="${stars} of 3 stars">${[0,1,2].map(i=>`<svg viewBox="0 0 24 24" width="44" height="44" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 21l1.6-7L2 9.2l7.1-.6z" fill="${i<stars?'#E8741E':'#d5dae1'}"/></svg>`).join("")}</div>
+     <div><h3>${g.score} points</h3><p>${g.correct} of ${GAME.length} sorted correctly${g.timed&&g.i<GAME.length?`, ${GAME.length-g.answered} left when time ran out`:""}. ${g.best===g.score&&g.score>0?"New best score.":`Best score: ${g.best}.`}</p></div></div>
+     ${g.missed.length?`<div class="q"><h3>Review what you missed</h3><ul class="gmiss">${g.missed.map(m=>`<li><b>${m.t}</b> is ${m.risk?"an ignition risk":"a safe action"}. ${m.why}</li>`).join("")}</ul></div>`:`<div class="feedback good"><p><strong>Perfect sort.</strong>You know exactly what can spark near a leak.</p></div>`}
+     <div style="display:flex;gap:12px;flex-wrap:wrap"><button class="btn ghost" id="again">Play again</button></div></div>`; },
+  bind(){ const g=S.game;
+   if(g.phase==="ready"){ $("#timedBox").onchange=e=>{g.timed=e.target.checked;}; $("#playBtn").onclick=startGame; $("#skipGame").onclick=()=>{ g.skipped=true; go(S.idx+1); }; }
+   if(g.phase==="play"){ $("#gRisk").onclick=()=>answer(true); $("#gSafe").onclick=()=>answer(false); }
+   if(g.phase==="done"){ const a=$("#again"); if(a) a.onclick=()=>{ g.phase="ready"; rerender("#playBtn"); }; }
+  }},
+ {id:"quiz", quiz:true, nar:"",
+  render(){ return quizRender(); }, bind(){ quizBind(); }},
+ {id:"results", nar:"",
+  render(){ const sc=quizScore(), pct=Math.round(sc/QUIZ.length*100), pass=pct>=80;
+   const left = 2-S.quizAttempts;
+   return `<div class="screen"><h2 tabindex="-1">${pass?"You passed":"Not quite yet"}</h2>
+   <div class="badge"><div class="score">${pct}%</div><div><h3>${sc} of ${QUIZ.length} correct</h3><p>${pass?"You've completed Natural Gas Leak Recognition and Response. Keep the Leak Response Checklist in your truck.":(left>0?`You need 80% to pass. You have ${left} attempt left.`:"You've used both attempts. Review the steps with your crew lead before your next job.")}</p></div></div>
+   <div style="display:flex;gap:12px;flex-wrap:wrap">
+    ${!pass&&left>0?`<button class="btn primary" id="retry">Retake the quiz</button>`:""}
+    <button class="btn ghost" id="review">Review the 5 steps</button>
+    <button class="btn ghost" id="toNotes">Designer notes: tools in this role</button>
+   </div>
+   <section class="dls" aria-labelledby="dlh"><h3 id="dlh">Take these with you</h3>
+    <div class="dlgrid">
+     <button class="dl" data-f="checklist"><span class="dlt">Leak Response Checklist</span><span class="dld">Job aid for your truck. 1 page, PDF.</span></button>
+     <button class="dl" data-f="participant"><span class="dlt">Participant Guide</span><span class="dld">Handout with the signs, steps, and your site notes. 1 page, PDF.</span></button>
+     <button class="dl" data-f="leader"><span class="dlt">Leader's Guide</span><span class="dld">For crew leads running the 15-minute tailgate huddle. 2 pages, PDF.</span></button>
+    </div><p class="fine" id="dlMsg" aria-live="polite"></p></section></div>`; },
+  bind(){ const r=$("#retry"); if(r) r.onclick=()=>{ S.qi=0; S.qAnswers=[]; S.qLocked=false; go(SCREENS.findIndex(s=>s.id==="quiz")); };
+   $("#review").onclick=()=>{ S.cameFrom=S.idx; go(SCREENS.findIndex(s=>s.id==="steps")); };
+   $("#toNotes").onclick=()=>{ S.cameFrom=S.idx; go(SCREENS.findIndex(s=>s.id==="notes")); };
+   main.querySelectorAll(".dl").forEach(b=>b.onclick=()=>downloadFile(b.dataset.f)); }},
+ {id:"notes", nar:"", extra:true,
+  render(){ const rows=[
+   ["Articulate Storyline 360","Build scenario-based e-learning for OSHA, DOT, and welding and joining topics, with branching decisions, hotspot simulations, quizzes, and variables that track each choice. Publish SCORM packages for the LMS.","Branching scenario, hotspot, Crew Safety Meter, and quiz, as storyboarded for Storyline"],
+   ["Articulate Rise 360","Turn SME procedures into mobile-friendly microlearning crews can finish on a tablet between jobs.","Plastic pipe joining microlearning"],
+   ["Articulate Review 360","Collect SME and stakeholder comments on each draft in one place and track sign-offs within the project timeline.","Three SME sign-off gates"],
+   ["Vyond","Animate short scenario openings, like a leak found at a job site, so learners see the situation before they act in it.","Opening job site scene (Vyond version)"],
+   ["Adobe Photoshop","Edit and mark up job site photos, such as placing leak signs for a hotspot activity.","Photo version of the Spot the signs scene"],
+   ["Adobe Illustrator","Draw consistent icons and diagrams: sense icons, PPE, pipe joint cross-sections, and step graphics.","Icon set for Smell, Look, Listen"],
+   ["Adobe Premiere Pro and Audition","Edit field demonstration video into short captioned clips, and record and clean narration so it's clear over job site noise.","Narration and portfolio walkthrough video"],
+   ["Adobe InDesign and Acrobat","Lay out job aids, leader's guides, and participant guides as print-ready, accessible PDFs.","Leak Response Checklist, Before You Fuse job aid"],
+   ["Microsoft Office","Word for design documents and leader's guides, PowerPoint for huddle decks, Excel for training trackers and quiz item analysis.","Design document, huddle deck, leader's guide"],
+   ["Learning Management System (LMS)","Upload SCORM packages, assign training by role and qualification, and pull completion and pass reports for compliance.","SCORM tracking plan"],
+   ["Learning analytics (Excel or Power BI)","Find which question or decision crews miss most, then revise that content first.","Scenario choice and quiz item reports, revision log"]];
+   return `<div class="screen"><h2 tabindex="-1">How I use these tools in an Instructional Designer II role</h2>
+   <p class="lead">Every tool named in the job description, what I'd use it for day to day on Field Operations training, and where it fits in this project.</p>
+   <div class="tablewrap"><table class="tools"><thead><tr><th scope="col">Tool</th><th scope="col">Everyday use in this role</th><th scope="col">Where it fits in this project</th></tr></thead>
+   <tbody>${rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join("")}</tbody></table></div>
+   <p class="fine">Designed by Naya Roquemore. This web version was built in HTML while Storyline was unavailable; illustrations are drawn in code. Portfolio sample based on public utility safety guidance; not an official procedure of any company.</p></div>`; }}
+];
+const MAIN_COUNT = SCREENS.filter(s=>!s.extra).length;
+
+function avatarSVG(){
+  return `<svg viewBox="0 0 160 190" width="160" height="190" role="img" aria-label="Illustration of Dana in a white hard hat and orange safety vest">
+   <circle cx="80" cy="84" r="78" fill="#F2F4F7"/>
+   <path d="M30 190 q0 -62 50 -66 q50 4 50 66z" fill="#E8741E"/>
+   <rect x="36" y="150" width="88" height="10" fill="#f4f4c8"/>
+   <rect x="72" y="118" width="16" height="16" fill="#8d5a3b"/>
+   <ellipse cx="80" cy="92" rx="30" ry="34" fill="#8d5a3b"/>
+   <path d="M50 96 q-4 26 10 34 M110 96 q4 26 -10 34" stroke="#2b1d14" stroke-width="10" fill="none" stroke-linecap="round"/>
+   <circle cx="69" cy="92" r="3.5" fill="#1d2433"/><circle cx="91" cy="92" r="3.5" fill="#1d2433"/>
+   <path d="M70 108 q10 8 20 0" stroke="#1d2433" stroke-width="3" fill="none" stroke-linecap="round"/>
+   <path d="M44 78 a36 32 0 0 1 72 0 z" fill="#ffffff" stroke="#c9ced6" stroke-width="2"/>
+   <rect x="38" y="74" width="84" height="9" rx="4.5" fill="#ffffff" stroke="#c9ced6" stroke-width="2"/>
+   <rect x="74" y="50" width="12" height="24" rx="4" fill="#E8741E"/>
+  </svg>`;
+}
+function badgeSVG(earned){
+  return `<svg viewBox="0 0 84 84" width="84" height="84" aria-hidden="true">
+   <path d="M42 4 l30 12 v22 c0 20 -14 34 -30 42 c-16 -8 -30 -22 -30 -42 v-22z" fill="${earned?'#1F3864':'#c9ced6'}"/>
+   <path d="M42 12 l23 9 v17 c0 15 -10 26 -23 33 c-13 -7 -23 -18 -23 -33 v-17z" fill="${earned?'#E8741E':'#e4e7ec'}"/>
+   <path d="M30 42 l9 9 l16 -18" stroke="#fff" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+}
+
+
+/* ---------- Game: Spark or Safe? ---------- */
+const GAME=[
+ {t:"Using your cell phone next to the trench", risk:true, why:"Phones can spark. Call only from a safe distance."},
+ {t:"Walking away from the area on foot", risk:false, why:"Leaving on foot avoids ignition sources."},
+ {t:"Starting the crew truck to drive away", risk:true, why:"A starting engine can ignite gas. Leave vehicles and go on foot."},
+ {t:"Telling the neighbor to leave her house", risk:false, why:"Warning others is one of the 5 steps."},
+ {t:"Lighting a cigarette while you wait", risk:true, why:"Any open flame can ignite gas."},
+ {t:"Calling 911 from the end of the street", risk:false, why:"Calls are safe once you're a safe distance away."},
+ {t:"Flipping on the porch light to see better", risk:true, why:"Electrical switches can spark."},
+ {t:"Moving upwind of the leak", risk:false, why:"Upwind keeps you out of the gas."},
+ {t:"Ringing the doorbell to alert the homeowner", risk:true, why:"Doorbells are electrical and can spark. Knock or call out instead, if it's safe to approach."},
+ {t:"Keeping the public back from a safe distance", risk:false, why:"Keep people away, but not from inside the danger zone."},
+ {t:"Using a two-way radio beside the leak", risk:true, why:"Radios can spark. Use them only after you're clear."},
+ {t:"Leaving the shut-down excavator where it is", risk:false, why:"Once it's off, leave it. Don't restart equipment near a leak."}
+];
+S.game={phase:"ready", timed:true, best:0};
+try{ S.game.best = +localStorage.getItem("sparkOrSafeBest")||0; }catch(e){}
+let gTimer=null;
+function startGame(){ const g=S.game;
+  Object.assign(g,{phase:"play", order:shuffled(GAME.length), i:0, score:0, streak:0, correct:0, answered:0, missed:[], timeLeft:45, lock:false});
+  rerender("#gRisk");
+  clearInterval(gTimer);
+  if(g.timed) gTimer=setInterval(()=>{ g.timeLeft--; const t=$("#gTime"), b=$("#gBar"); if(t) t.textContent=g.timeLeft+"s"; if(b) b.style.width=(g.timeLeft/45*100)+"%"; if(g.timeLeft<=0){ endGame(); } },1000);
+}
+function answer(saidRisk){ const g=S.game; if(g.lock||g.phase!=="play") return; g.lock=true;
+  const it=GAME[g.order[g.i]], ok = saidRisk===it.risk; g.answered++;
+  if(ok){ g.correct++; g.streak++; g.score+=10+(g.streak%3===0?15:0); } else { g.streak=0; g.missed.push(it); }
+  const card=$("#gCard"); card.classList.add(ok?"good":"bad");
+  card.innerHTML=`<p>${it.t}</p><span class="gverdict">${ok?"Correct":"Not quite"}${ok&&g.streak%3===0?": streak bonus +15":""}</span><span class="gwhy">${it.why}</span>`;
+  $("#gScore").textContent=g.score; $("#gStreak").textContent=g.streak>=2?`Streak: ${g.streak}`:"";
+  setTimeout(()=>{ if(g.phase!=="play") return; g.i++; g.lock=false; if(g.i>=GAME.length) endGame(); else rerender(); }, ok?900:1700);
+}
+function endGame(){ const g=S.game; clearInterval(gTimer); if(g.phase!=="play") return;
+  // unanswered items count as missed
+  for(let k=g.answered;k<GAME.length;k++){ const it=GAME[g.order[k]]; if(!g.missed.includes(it)) g.missed.push(it); }
+  g.phase="done"; if(g.score>g.best){ g.best=g.score; try{ localStorage.setItem("sparkOrSafeBest",g.score); }catch(e){} }
+  rerender(); const h=main.querySelector("h2"); if(h) h.focus();
+}
+document.addEventListener("keydown",e=>{ if(SCREENS[S.idx].id!=="game"||S.game.phase!=="play") return;
+  if(e.key==="ArrowLeft"){e.preventDefault();answer(true);} if(e.key==="ArrowRight"){e.preventDefault();answer(false);} });
+function sparkSVG(){ return `<svg viewBox="0 0 200 200" width="200" height="200"><circle cx="100" cy="100" r="92" fill="#F2F4F7"/><path d="M112 30 L62 112 h36 l-12 58 l54 -86 h-38z" fill="#E8741E"/><circle cx="148" cy="54" r="6" fill="#1F3864"/><circle cx="46" cy="70" r="4" fill="#1F3864"/><circle cx="154" cy="138" r="5" fill="#1F3864"/></svg>`; }
+function boltSVG(){ return `<svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path d="M13 2L4 14h7l-1 8 9-12h-7z" fill="currentColor"/></svg>`; }
+function checkSVG(){ return `<svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path d="M4 12l5 5L20 6" stroke="currentColor" stroke-width="3.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`; }
+
+/* ---------- Downloads (embedded so they work on any host) ---------- */
+function downloadFile(key){
+  const f=JSON.parse(document.getElementById("dlData").textContent)[key];
+  const bin=atob(f.b64), bytes=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
+  const url=URL.createObjectURL(new Blob([bytes],{type:"application/pdf"}));
+  const a=document.createElement("a"); a.href=url; a.download=f.name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),4000);
+  const m=$("#dlMsg"); if(m) m.textContent=`Downloading ${f.name}. Check your downloads folder.`;
+}
+
+/* ---------- Quiz ---------- */
+function shuffled(n){ const a=[...Array(n).keys()]; do{ for(let i=n-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} }while(a.every((v,i)=>v===i)); return a; }
+function quizRender(){
+  const q=QUIZ[S.qi], ans=S.qAnswers[S.qi];
+  if(q.type==="seq" && !S.seqOrder) S.seqOrder=shuffled(q.o.length);
+  let body="";
+  if(q.type==="mc"||q.type==="mr"){
+    const typ=q.type==="mc"?"radio":"checkbox";
+    body=`<fieldset style="border:0;margin:0;padding:0"><legend class="sr">${q.q}</legend><div class="opts">${q.o.map((o,i)=>{
+      let cls=""; if(S.qLocked){ const right = q.type==="mc"? i===q.a : q.a.includes(i); const chosen = q.type==="mc"? ans===i : (ans||[]).includes(i); if(right) cls="is-right"; else if(chosen) cls="is-wrong"; }
+      const chk = q.type==="mc"? (ans===i) : ((ans||[]).includes(i));
+      return `<label class="opt ${cls}"><input type="${typ}" name="q" value="${i}" ${chk?"checked":""} ${S.qLocked?"disabled":""}>${o}</label>`;}).join("")}</div></fieldset>`;
+  } else {
+    const ord=S.seqOrder;
+    body=`<ol class="seq">${ord.map((oi,pos)=>{ let cls=""; if(S.qLocked) cls = oi===pos?"is-right":"is-wrong";
+      return `<li class="${cls}"><span>${q.o[oi]}</span><button class="mv" data-p="${pos}" data-d="-1" aria-label="Move up: ${q.o[oi]}" ${pos===0||S.qLocked?"disabled":""}>&#8593;</button><button class="mv" data-p="${pos}" data-d="1" aria-label="Move down: ${q.o[oi]}" ${pos===ord.length-1||S.qLocked?"disabled":""}>&#8595;</button></li>`;}).join("")}</ol>`;
+  }
+  let fb="";
+  if(S.qLocked){ const ok=isRight(S.qi); fb=`<div class="qfb ${ok?'good':'bad'}" role="status"><b>${ok?"Correct.":"Incorrect."}</b> ${q.ex}</div>`; }
+  return `<div class="screen"><h2 tabindex="-1">Knowledge check: question ${S.qi+1} of ${QUIZ.length}</h2>
+   <div class="q"><h3>${q.q}</h3>${q.type==="mr"?`<p class="fine" style="margin:-6px 0 10px">Select all that apply.</p>`:""}${body}${fb}</div></div>`;
+}
+function isRight(i){ const q=QUIZ[i], a=S.qAnswers[i];
+  if(q.type==="mc") return a===q.a;
+  if(q.type==="mr") return Array.isArray(a) && a.length===q.a.length && q.a.every(x=>a.includes(x));
+  return Array.isArray(a) && a.every((v,p)=>v===p);
+}
+function quizScore(){ return QUIZ.reduce((n,_,i)=>n+(isRight(i)?1:0),0); }
+function quizBind(){
+  const q=QUIZ[S.qi];
+  main.querySelectorAll("input[name=q]").forEach(inp=>inp.onchange=()=>{
+    if(q.type==="mc") S.qAnswers[S.qi]=+inp.value;
+    else S.qAnswers[S.qi]=[...main.querySelectorAll("input[name=q]:checked")].map(x=>+x.value);
+    updateNav(); });
+  main.querySelectorAll(".mv").forEach(b=>b.onclick=()=>{ const p=+b.dataset.p, d=+b.dataset.d, o=S.seqOrder; [o[p],o[p+d]]=[o[p+d],o[p]]; S.qAnswers[S.qi]=[...o]; rerender(`.mv[data-p="${p+d}"][data-d="${d}"]`); });
+  if(q.type==="seq" && !S.qAnswers[S.qi]) S.qAnswers[S.qi]=[...S.seqOrder];
+}
+
+/* ---------- Engine ---------- */
+function setMeter(){ const p=Math.max(0,100-S.mistakes*20); $("#meterFill").style.width=p+"%"; $("#meterFill").style.background = p>=80?"#4cc38a":(p>=40?"#f2b705":"#e5484d"); $("#meterPct").textContent=p+"%"; }
+function updateNav(){
+  const sc=SCREENS[S.idx];
+  backBtn.style.visibility = (S.idx===0)?"hidden":"visible";
+  if(sc.quiz){
+    const has = S.qAnswers[S.qi]!=null && !(Array.isArray(S.qAnswers[S.qi]) && QUIZ[S.qi].type==="mr" && S.qAnswers[S.qi].length===0);
+    nextBtn.textContent = S.qLocked ? (S.qi===QUIZ.length-1?"See results":"Next question") : "Submit";
+    nextBtn.disabled = !S.qLocked && !has; nextBtn.hidden=false; backBtn.style.visibility="hidden";
+  } else if(sc.id==="results"){ nextBtn.hidden=true; backBtn.style.visibility="hidden"; }
+  else if(sc.extra){ nextBtn.hidden=true; backBtn.style.visibility="visible"; }
+  else { nextBtn.hidden=false; nextBtn.textContent = sc.id==="game"?"Start quiz":(sc.id==="welcome"?"Start course":"Next"); if(sc.id==="game" && S.game.phase==="play") nextBtn.hidden=true; nextBtn.disabled = sc.gate ? !sc.gate() : false; }
+  if(S.cameFrom!=null && sc.id==="steps"){ nextBtn.textContent="Back to results"; nextBtn.disabled=false; }
+  const shown = sc.extra ? "Designer notes" : `Screen ${Math.min(S.idx+1,MAIN_COUNT)} of ${MAIN_COUNT}`;
+  $("#count").textContent=shown;
+  $("#prog").style.width = (sc.extra?100:Math.round((S.idx)/(MAIN_COUNT-1)*100))+"%";
+  $("#meter").classList.toggle("on", !!sc.decision || sc.id==="summary");
+}
+function rerender(focusSel){
+  const sc=SCREENS[S.idx]; main.innerHTML=sc.render(); if(sc.bind) sc.bind.call(sc); updateNav();
+  if(focusSel){ const el=main.querySelector(focusSel); if(el) el.focus(); }
+}
+function go(i){
+  if(SCREENS[S.idx] && SCREENS[S.idx].id==="game" && S.game.phase==="play"){ clearInterval(gTimer); S.game.phase="ready"; }
+  S.idx=i; const sc=SCREENS[i];
+  if(sc.quiz && S.qi===0 && !S.qLocked && !S.qAnswers.length) S.seqOrder=null;
+  rerender(); const h=main.querySelector("h2"); if(h) h.focus({preventScroll:true});
+  window.scrollTo({top:0}); speak(sc.nar);
+  $("#live").textContent = sc.extra? "Designer notes" : `Screen ${Math.min(i+1,MAIN_COUNT)} of ${MAIN_COUNT}`;
+}
+nextBtn.onclick=()=>{
+  const sc=SCREENS[S.idx];
+  if(sc.quiz){
+    if(!S.qLocked){ S.qLocked=true; rerender(".qfb"); return; }
+    if(S.qi<QUIZ.length-1){ S.qi++; S.qLocked=false; if(QUIZ[S.qi].type==="seq") S.seqOrder=null; go(S.idx); return; }
+    S.quizAttempts++; S.qLocked=false; go(S.idx+1); return;
+  }
+  if(S.cameFrom!=null && sc.id==="steps"){ const b=S.cameFrom; S.cameFrom=null; go(b); return; }
+  if(S.idx<SCREENS.length-1) go(S.idx+1);
+};
+backBtn.onclick=()=>{
+  const sc=SCREENS[S.idx];
+  if(sc.extra && S.cameFrom!=null){ const b=S.cameFrom; S.cameFrom=null; go(b); return; }
+  if(sc.extra){ go(0); return; }
+  if(S.idx>0) go(S.idx-1);
+};
+$("#ccBtn").onclick=e=>{ S.cc=!S.cc; e.currentTarget.setAttribute("aria-pressed",S.cc); main.querySelectorAll(".caption").forEach(c=>c.hidden=!S.cc); };
+$("#voBtn").onclick=e=>{ S.vo=!S.vo; e.currentTarget.setAttribute("aria-pressed",S.vo); if(S.vo) speak(SCREENS[S.idx].nar); else if("speechSynthesis" in window) speechSynthesis.cancel(); };
+$("#notesBtn").onclick=()=>{ const n=SCREENS.findIndex(s=>s.id==="notes"); if(S.idx!==n){ S.cameFrom=S.idx; go(n);} };
+if(!("speechSynthesis" in window)) $("#voBtn").hidden=true;
+setMeter(); go(0);
+})();
+</script>
+</body>
+</html>
